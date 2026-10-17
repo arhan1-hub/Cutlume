@@ -244,3 +244,15 @@ a{color:inherit;text-decoration:none}
 .export-success{border-color:rgba(145,240,211,.3);background:rgba(35,120,100,.1)}
 .export-success strong{color:#92f2d7}
 button:disabled{opacity:.65;cursor:wait;transform:none}
+
+/* Playable storyboard preview */
+.final-film.preview-is-playing h2{animation:cutlume-title-in .7s cubic-bezier(.2,.8,.2,1) both}
+.final-film.preview-is-playing p{animation:cutlume-subtitle-in .9s .12s both}
+.final-film.preview-is-playing .film-grain{animation:cutlume-grain-drift 8s linear infinite}
+.final-film.preview-is-playing:after{content:"";position:absolute;inset:-30%;pointer-events:none;background:linear-gradient(110deg,transparent 42%,rgba(255,255,255,.075) 49%,transparent 56%);animation:cutlume-light-sweep 4s ease-in-out infinite}
+.film-play-overlay{position:absolute;top:12px;right:12px;z-index:2;padding:6px 8px;border:1px solid rgba(190,202,255,.25);border-radius:5px;background:rgba(7,10,20,.68);color:#c8d0ff;font:8px var(--mono);letter-spacing:.8px}
+.preview-is-playing .film-play-overlay{color:#a4f5db;border-color:rgba(145,240,211,.35)}
+@keyframes cutlume-title-in{from{opacity:0;transform:translateY(18px) scale(.98);filter:blur(4px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@keyframes cutlume-subtitle-in{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cutlume-grain-drift{from{background-position:0 0}to{background-position:72px 36px}}
+@keyframes cutlume-light-sweep{0%,100%{transform:translateX(-28%);opacity:0}30%,70%{opacity:1}50%{transform:translateX(28%)}}
