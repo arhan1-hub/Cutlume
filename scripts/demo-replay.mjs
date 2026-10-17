@@ -2,7 +2,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
 
 function arg(name, fallback = undefined) {
@@ -37,7 +36,8 @@ if (!Array.isArray(config.steps) || config.steps.length === 0) {
 const outputDir = path.resolve(config.outputDir || "recordings");
 await fs.mkdir(outputDir, { recursive: true });
 const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-const outputPath = path.join(outputDir, `${(config.name || "cutlume-demo").replace(/[^a-z0-9-_]+/gi, "-")}-${stamp}.webm`);
+const safeName = (config.name || "cutlume-demo").replace(/[^a-z0-9-_]+/gi, "-");
+const outputPath = path.join(outputDir, `${safeName}-${stamp}.webm`);
 const viewport = config.viewport || { width: 1440, height: 900 };
 const browser = await chromium.launch({ headless, slowMo });
 const context = await browser.newContext({
@@ -45,6 +45,7 @@ const context = await browser.newContext({
   recordVideo: { dir: outputDir, size: viewport },
 });
 const page = await context.newPage();
+const video = page.video();
 let failedStep = null;
 
 async function runStep(step, index) {
@@ -114,20 +115,10 @@ try {
 }
 
 try {
-  const videos = (await fs.readdir(outputDir))
-    .filter((name) => name.endsWith(".webm"))
-    .map((name) => path.join(outputDir, name));
-  const newest = (await Promise.all(videos.map(async (file) => ({ file, stat: await fs.stat(file) }))))
-    .sort((a, b) => b.stat.mtimeMs - a.stat.mtimeMs)[0];
-  if (newest) {
-    await fs.copyFile(newest.file, outputPath);
-    if (newest.file !== outputPath) await fs.rm(newest.file, { force: true });
-    console.log(`Recording saved: ${outputPath}`);
-    console.log("Format: WebM (not MP4 yet). The workflow can be replayed again against the next build.");
-  } else {
-    console.error("No video file was produced. Check that the browser launched and the workflow ran.");
-    process.exitCode = 1;
-  }
+  if (!video) throw new Error("The browser did not create a video recording.");
+  await video.saveAs(outputPath);
+  console.log(`Recording saved: ${outputPath}`);
+  console.log("Format: WebM (not MP4 yet). The workflow can be replayed again against the next build.");
 } catch (error) {
   console.error("Could not finalize the recording:", error instanceof Error ? error.message : error);
   process.exitCode = 1;
