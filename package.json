@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "demo:replay": "node scripts/demo-replay.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
@@ -17,6 +18,7 @@
     "@remotion/web-renderer": "4.0.536"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
