@@ -160,7 +160,6 @@ export default function Home() {
       const { canRenderMediaOnWeb, renderMediaOnWeb } = await import("@remotion/web-renderer");
       const support = await canRenderMediaOnWeb({
         ...dimensions,
-        fps,
         container: "mp4",
         videoCodec: "h264",
         muted: true,
