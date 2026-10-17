@@ -183,6 +183,7 @@ export default function Home() {
           width: dimensions.width,
           height: dimensions.height,
           id: "cutlume-launch-film",
+          defaultProps: { scenes, mood, projectName },
         },
         inputProps: { scenes, mood, projectName },
         container: "mp4",
