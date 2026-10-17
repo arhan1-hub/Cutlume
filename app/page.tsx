@@ -189,7 +189,8 @@ export default function Home() {
         videoCodec: "h264",
         muted: true,
         onProgress: ({ progress }: { progress: number }) => {
-          setExportProgress(Math.max(8, Math.min(99, Math.round(progress * 100))));
+          const percent = Math.max(8, Math.min(99, Math.round(progress * 100)));
+          setExportProgress((currentProgress) => currentProgress === percent ? currentProgress : percent);
         },
       });
 
