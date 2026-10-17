@@ -1,0 +1,259 @@
+"use client";
+
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import {
+  ArrowDownRight,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  Check,
+  ChevronDown,
+  Clapperboard,
+  Clock3,
+  Film,
+  Layers3,
+  Play,
+  Plus,
+  Sparkles,
+  Upload,
+  WandSparkles,
+  X,
+} from "lucide-react";
+
+type Scene = {
+  id: string;
+  kind: string;
+  title: string;
+  subtitle: string;
+  duration: number;
+  motion: string;
+};
+
+type Project = {
+  name: string;
+  productUrl: string;
+  mood: string;
+  format: string;
+  scenes: Scene[];
+};
+
+const initialScenes: Scene[] = [
+  { id: "hook", kind: "01 · OPEN", title: "Your next big idea.", subtitle: "A better way to work starts here.", duration: 3, motion: "Slow reveal" },
+  { id: "reveal", kind: "02 · REVEAL", title: "Meet your new workspace.", subtitle: "Everything important, in one place.", duration: 4, motion: "Focus zoom" },
+  { id: "feature", kind: "03 · FEATURE", title: "From busywork to flow.", subtitle: "Less friction. More momentum.", duration: 6, motion: "Slide & settle" },
+  { id: "close", kind: "04 · CLOSE", title: "Make room for what matters.", subtitle: "Your next chapter starts now.", duration: 4, motion: "Soft fade" },
+];
+
+const steps = ["Your assets", "Creative direction", "Storyboard", "Preview"];
+
+export default function Home() {
+  const [workspace, setWorkspace] = useState(false);
+  const [stage, setStage] = useState(0);
+  const [projectName, setProjectName] = useState("My launch film");
+  const [productUrl, setProductUrl] = useState("");
+  const [mood, setMood] = useState("Cinematic");
+  const [format, setFormat] = useState("Landscape · 16:9");
+  const [referenceFile, setReferenceFile] = useState<File | null>(null);
+  const [productFile, setProductFile] = useState<File | null>(null);
+  const [scenes, setScenes] = useState<Scene[]>(initialScenes);
+  const [activeScene, setActiveScene] = useState(0);
+  const [saved, setSaved] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [showFeedback, setShowFeedback] = useState(false);
+
+  const totalDuration = useMemo(() => scenes.reduce((sum, scene) => sum + scene.duration, 0), [scenes]);
+  const selectedScene = scenes[activeScene] ?? scenes[0];
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("cutlume-draft-v1");
+      if (raw) {
+        const draft = JSON.parse(raw) as Partial<Project>;
+        if (draft.name) setProjectName(draft.name);
+        if (draft.productUrl) setProductUrl(draft.productUrl);
+        if (draft.mood) setMood(draft.mood);
+        if (draft.format) setFormat(draft.format);
+        if (draft.scenes?.length) setScenes(draft.scenes);
+      }
+    } catch {
+      // Local draft is optional; the app remains usable if storage is blocked.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("cutlume-draft-v1", JSON.stringify({ name: projectName, productUrl, mood, format, scenes }));
+      setSaved(true);
+      const id = window.setTimeout(() => setSaved(false), 1600);
+      return () => window.clearTimeout(id);
+    } catch {
+      setSaved(false);
+    }
+  }, [projectName, productUrl, mood, format, scenes]);
+
+  function handleFile(event: ChangeEvent<HTMLInputElement>, type: "reference" | "product") {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 100 * 1024 * 1024) {
+      window.alert("For this early prototype, please choose a file smaller than 100 MB.");
+      event.target.value = "";
+      return;
+    }
+    if (type === "reference") setReferenceFile(file);
+    else setProductFile(file);
+  }
+
+  function updateScene(field: "title" | "subtitle" | "duration" | "motion", value: string | number) {
+    setScenes((current) => current.map((scene, index) => index === activeScene ? { ...scene, [field]: value } : scene));
+  }
+
+  function downloadStoryboard() {
+    const payload = {
+      product: projectName,
+      productUrl,
+      creativeDirection: { mood, format, referenceFileName: referenceFile?.name ?? null, productFootageName: productFile?.name ?? null },
+      durationSeconds: totalDuration,
+      scenes,
+      note: "Storyboard generated from editable templates. Reference video has not been automatically analysed.",
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "cutlume-storyboard.json";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function resetProject() {
+    setStage(0);
+    setWorkspace(false);
+    setScenes(initialScenes);
+    setActiveScene(0);
+  }
+
+  return (
+    <main className="app-root">
+      <div className="ambient ambient-one" />
+      <div className="ambient ambient-two" />
+      <header className="topbar">
+        <button className="brand" onClick={resetProject} aria-label="Cutlume home">
+          <span className="brand-mark"><Clapperboard size={19} strokeWidth={2.2} /></span>
+          <span>cutlume<span className="brand-period">.</span></span>
+        </button>
+        <nav className="top-nav" aria-label="Main navigation">
+          <a href="#how-it-works">How it works</a>
+          <a href="#principles">The approach</a>
+        </nav>
+        <div className="top-actions">
+          <span className="beta-label"><span className="status-dot" /> Early access</span>
+          <button className="button button-small button-primary" onClick={() => { setWorkspace(true); setStage(0); }}>
+            Open studio <ArrowUpRight size={15} />
+          </button>
+        </div>
+      </header>
+
+      {!workspace ? (
+        <>
+          <section className="hero">
+            <div className="hero-copy">
+              <div className="eyebrow"><Sparkles size={13} /> THE PRODUCT LAUNCH STUDIO</div>
+              <h1>Your product.<br /><span className="gradient-text">Main character</span><br />energy.</h1>
+              <p className="hero-description">Turn the product you built into the launch video it deserves. Bring a real screen recording and a visual reference. Shape the story. Make it feel like a moment.</p>
+              <div className="hero-actions">
+                <button className="button button-primary button-large" onClick={() => { setWorkspace(true); setStage(0); }}>
+                  Create your first film <ArrowRight size={17} />
+                </button>
+                <a className="text-link" href="#how-it-works"><span className="play-outline"><Play size={12} fill="currentColor" /></span> See the process</a>
+              </div>
+              <div className="hero-proof">
+                <div className="avatar-stack"><span>✳</span><span>◈</span><span>↗</span></div>
+                <span>For small teams with big launches.</span>
+              </div>
+            </div>
+
+            <div className="hero-visual" aria-label="Illustrative cinematic launch storyboard">
+              <div className="visual-topline"><span><span className="live-dot" /> YOUR NEXT RELEASE</span><span>FILM / 001</span></div>
+              <div className="film-stage">
+                <div className="stage-orbit orbit-a" /><div className="stage-orbit orbit-b" />
+                <div className="stage-grid" />
+                <div className="stage-glow" />
+                <div className="floating-window window-back">
+                  <div className="window-head"><span /><span /><span /><b>workspace / overview</b></div>
+                  <div className="fake-side"><i /><i /><i /><i /></div>
+                  <div className="fake-main"><div className="fake-line wide" /><div className="fake-line" /><div className="fake-metrics"><span /><span /><span /></div><div className="fake-chart"><i /><i /><i /><i /><i /><i /><i /><i /><i /></div></div>
+                </div>
+                <div className="floating-window window-front">
+                  <div className="window-head"><span /><span /><span /><b>your next big idea.</b></div>
+                  <div className="front-content"><div className="mini-eyebrow">INTRODUCING SOMETHING NEW</div><div className="mini-headline">Make work<br /><em>feel different.</em></div><div className="mini-cta">Meet the workspace <ArrowUpRight size={10} /></div></div>
+                </div>
+                <div className="float-tag tag-top"><Sparkles size={12} /> STORY, NOT JUST SCREENS</div>
+                <div className="float-tag tag-bottom"><span className="equalizer"><i /><i /><i /><i /><i /></span> MOTION / ON</div>
+                <div className="frame-corner corner-a" /><div className="frame-corner corner-b" /><div className="frame-corner corner-c" /><div className="frame-corner corner-d" />
+              </div>
+              <div className="visual-footer"><span>STYLE FRAME <b>01 / 04</b></span><span>DESIGNED TO MOVE <ArrowDownRight size={14} /></span></div>
+            </div>
+          </section>
+
+          <section className="ticker" aria-label="Product values">
+            <span>REAL PRODUCT FOOTAGE</span><i /> <span>REFERENCE-LED STORYTELLING</span><i /> <span>EDITABLE SCENES</span><i /> <span>MADE FOR INDIE BUILDERS</span>
+          </section>
+
+          <section id="how-it-works" className="section workflow-section">
+            <div className="section-heading"><div><div className="eyebrow">A BETTER WAY TO SHOW YOUR WORK</div><h2>From rough recording<br />to <span className="gradient-text">launch-ready story.</span></h2></div><p>No timeline expertise required. Start with the product you already have and build a story around it.</p></div>
+            <div className="workflow-grid">
+              <article className="workflow-card"><div className="step-number">01 <ArrowUpRight size={15} /></div><div className="workflow-icon"><Upload size={21} /></div><h3>Bring the raw material.</h3><p>Your actual product recording, plus a reference video that captures the kind of energy you're after.</p><div className="chip-row"><span>Screen recording</span><span>Reference</span></div></article>
+              <article className="workflow-card"><div className="step-number">02 <ArrowUpRight size={15} /></div><div className="workflow-icon"><WandSparkles size={21} /></div><h3>Find the feeling.</h3><p>Choose the mood, rhythm and transition language. Turn inspiration into a direction you can actually edit.</p><div className="chip-row"><span>Style guide</span><span>Story beats</span></div></article>
+              <article className="workflow-card"><div className="step-number">03 <ArrowUpRight size={15} /></div><div className="workflow-icon"><Film size={21} /></div><h3>Make it move.</h3><p>Shape the hook, product reveal, feature moment and closing scene. Keep the real product at the centre.</p><div className="chip-row"><span>Scene editor</span><span>Preview</span></div></article>
+            </div>
+          </section>
+
+          <section id="principles" className="manifesto">
+            <div className="manifesto-symbol"><Layers3 size={23} /></div>
+            <div className="manifesto-copy"><div className="eyebrow">OUR CREATIVE PRINCIPLE</div><h2>Inspired by the feeling.<br /><span className="gradient-text">Faithful to the product.</span></h2><p>Reference videos are for learning rhythm, composition and mood—not copying someone else's work frame for frame. Your product stays the hero.</p></div>
+            <div className="manifesto-side"><span>01 — HONEST UI</span><span>02 — ORIGINAL MOTION</span><span>03 — FOUNDER FIRST</span></div>
+          </section>
+
+          <section className="closing-cta"><div className="closing-glow" /><div className="eyebrow">YOUR NEXT LAUNCH DESERVES A STORY</div><h2>Let's make it<br /><span className="gradient-text">feel like something.</span></h2><button className="button button-primary button-large" onClick={() => { setWorkspace(true); setStage(0); }}>Build a first draft <ArrowRight size={17} /></button><p>No AI credits required for this prototype. Your project stays in this browser.</p></section>
+
+          <footer className="footer"><button className="brand brand-footer" onClick={resetProject}><span className="brand-mark"><Clapperboard size={16} /></span><span>cutlume<span className="brand-period">.</span></span></button><span>Made for the work behind the launch.</span><button className="footer-feedback" onClick={() => setShowFeedback(true)}>Help shape the product <ArrowUpRight size={14} /></button></footer>
+        </>
+      ) : (
+        <section className="studio-shell">
+          <div className="studio-heading">
+            <div><button className="back-link" onClick={() => setWorkspace(false)}><ArrowLeft size={15} /> Back to overview</button><div className="eyebrow studio-eyebrow"><span className="status-dot" /> YOUR CREATIVE WORKSPACE</div><h1>Make a little <span className="gradient-text">movie magic.</span></h1><p>Build a launch story from the product you already have.</p></div>
+            <div className="save-indicator"><span className="save-dot" /> {saved ? "Draft saved locally" : "Local draft"}</div>
+          </div>
+          <div className="stepper">
+            {steps.map((step, index) => <button key={step} className={`stepper-item ${stage === index ? "active" : ""} ${stage > index ? "complete" : ""}`} onClick={() => setStage(index)}><span className="stepper-number">{stage > index ? <Check size={13} /> : `0${index + 1}`}</span><span>{step}</span></button>)}
+          </div>
+
+          {stage === 0 && <div className="studio-grid">
+            <div className="studio-main-panel panel">
+              <div className="panel-heading"><div><div className="eyebrow">STEP 01 / SOURCE MATERIAL</div><h2>Start with the good stuff.</h2><p>Two ingredients. One launch story.</p></div><span className="panel-icon"><Upload size={18} /></span></div>
+              <label className="field-label" htmlFor="project-name">PROJECT NAME</label><input id="project-name" className="text-input" value={projectName} onChange={(event) => setProjectName(event.target.value)} placeholder="e.g. Orbit launch film" />
+              <label className="field-label" htmlFor="product-url">PRODUCT URL <span className="optional">OPTIONAL</span></label><input id="product-url" className="text-input" value={productUrl} onChange={(event) => setProductUrl(event.target.value)} placeholder="https://yourproduct.com" inputMode="url" />
+              <div className="upload-grid">
+                <div className="upload-card"><div className="upload-card-top"><span className="upload-icon"><Film size={18} /></span><span className="required-label">01 · REFERENCE</span></div><h3>Show me the feeling.</h3><p>A launch video whose rhythm, transitions or atmosphere you admire.</p>{referenceFile ? <div className="file-pill"><Check size={14} /><span>{referenceFile.name}</span><button onClick={() => setReferenceFile(null)} aria-label="Remove reference file"><X size={14} /></button></div> : <label className="upload-button"><Plus size={15} /> Add reference video<input type="file" accept="video/*" onChange={(event) => handleFile(event, "reference")} hidden /></label>}<span className="file-note">Video file · up to 100 MB</span></div>
+                <div className="upload-card"><div className="upload-card-top"><span className="upload-icon"><Layers3 size={18} /></span><span className="required-label">02 · YOUR PRODUCT</span></div><h3>Show me the real thing.</h3><p>A screen recording or screenshot of the product you want people to remember.</p>{productFile ? <div className="file-pill"><Check size={14} /><span>{productFile.name}</span><button onClick={() => setProductFile(null)} aria-label="Remove product file"><X size={14} /></button></div> : <label className="upload-button"><Plus size={15} /> Add product footage<input type="file" accept="video/*,image/*" onChange={(event) => handleFile(event, "product")} hidden /></label>}<span className="file-note">Video or image · up to 100 MB</span></div>
+              </div>
+              <div className="privacy-note"><span className="privacy-icon">⌁</span><p><strong>Your creative stays yours.</strong> This prototype keeps project settings in this browser. Selected files are used for local previews and are not uploaded to a server by this page.</p></div>
+              <div className="panel-footer"><span className="step-hint">You can start with sample content, too.</span><button className="button button-primary" onClick={() => setStage(1)}>Set the direction <ArrowRight size={16} /></button></div>
+            </div>
+            <aside className="side-note"><div className="side-note-number">A NOTE ON REFERENCES</div><h3>Steal the feeling.<br /><em>Not the frames.</em></h3><p>We'll use your reference to guide broad choices like pacing, contrast and transitions. This prototype doesn't analyse the video automatically yet.</p><div className="side-note-line" /><div className="side-note-bottom"><Sparkles size={15} /> ORIGINAL STORIES, ALWAYS</div></aside>
+          </div>}
+
+          {stage === 1 && <div className="studio-grid"><div className="studio-main-panel panel"><div className="panel-heading"><div><div className="eyebrow">STEP 02 / CREATIVE DIRECTION</div><h2>Choose the feeling.</h2><p>Think of this as a mini creative brief for your film.</p></div><span className="panel-icon"><Sparkles size={18} /></span></div><label className="field-label">VISUAL MOOD</label><div className="mood-grid">{["Cinematic", "Minimal", "Playful", "High energy"].map((item) => <button key={item} onClick={() => setMood(item)} className={`mood-card ${mood === item ? "selected" : ""}`}><span className={`mood-art mood-${item.toLowerCase().replace(" ", "-")}`}><i /><i /><i /></span><span>{item}</span>{mood === item && <Check size={14} />}</button>)}</div><label className="field-label">OUTPUT FORMAT</label><div className="format-options">{["Landscape · 16:9", "Portrait · 9:16", "Square · 1:1"].map((item) => <button key={item} onClick={() => setFormat(item)} className={`format-option ${format === item ? "selected" : ""}`}><span className={`format-icon ${item.startsWith("Portrait") ? "portrait" : item.startsWith("Square") ? "square" : ""}`} /><span>{item}</span>{format === item && <Check size={14} />}</button>)}</div><div className="direction-note"><Sparkles size={16} /><span>Your selection sets the creative direction. Automatic reference-video analysis is not implemented in this early build.</span></div><div className="panel-footer"><button className="button button-quiet" onClick={() => setStage(0)}><ArrowLeft size={15} /> Back</button><button className="button button-primary" onClick={() => setStage(2)}>Build storyboard <ArrowRight size={16} /></button></div></div><aside className="side-note"><div className="side-note-number">CREATIVE BRIEF / 001</div><h3>One clear idea<br /><em>beats ten effects.</em></h3><p>Great launch films make the product's value obvious. Motion is there to guide attention, not compete with the interface.</p><div className="side-note-line" /><div className="side-note-bottom"><Clock3 size={15} /> TARGET LENGTH · 15–20 SEC</div></aside></div>}
+
+          {stage === 2 && <div className="storyboard-layout"><div className="storyboard-column"><div className="panel-heading"><div><div className="eyebrow">STEP 03 / STORY STRUCTURE</div><h2>A story in four beats.</h2><p>Edit each scene. Keep what works. Make it yours.</p></div><button className="button button-quiet button-small" onClick={() => { setScenes(initialScenes); setActiveScene(0); }}>Reset <ArrowRight size={13} /></button></div><div className="scene-list">{scenes.map((scene, index) => <button key={scene.id} className={`scene-row ${activeScene === index ? "selected" : ""}`} onClick={() => setActiveScene(index)}><div className={`scene-thumb scene-thumb-${index % 4}`}><span>{String(index + 1).padStart(2, "0")}</span><div className="thumb-lines"><i /><i /><i /></div></div><div className="scene-row-copy"><span className="scene-kind">{scene.kind}</span><strong>{scene.title}</strong><span className="scene-subtitle">{scene.subtitle}</span></div><span className="scene-time">{scene.duration}s</span><ArrowUpRight className="scene-arrow" size={14} /></button>)}</div><button className="add-scene-button" onClick={() => { const newScene = { id: `scene-${Date.now()}`, kind: `0${scenes.length + 1} · NEW SCENE`, title: "A moment worth showing.", subtitle: "Your product, in its best light.", duration: 3, motion: "Slow reveal" }; setScenes((current) => [...current, newScene]); setActiveScene(scenes.length); }}><Plus size={15} /> Add another scene</button><div className="panel-footer"><button className="button button-quiet" onClick={() => setStage(1)}><ArrowLeft size={15} /> Back</button><button className="button button-primary" onClick={() => setStage(3)}>Preview film <Play size={14} /></button></div></div><div className="scene-edit-panel panel"><div className="eyebrow">SCENE SETTINGS</div><div className={`edit-preview scene-thumb-${activeScene % 4}`}><span className="edit-preview-kicker">{selectedScene?.kind}</span><strong>{selectedScene?.title}</strong><span className="edit-preview-sub">{selectedScene?.subtitle}</span><div className="preview-sweep" /></div>{selectedScene && <><label className="field-label" htmlFor="scene-title">HEADLINE</label><input id="scene-title" className="text-input" value={selectedScene.title} onChange={(event) => updateScene("title", event.target.value)} /><label className="field-label" htmlFor="scene-subtitle">SUPPORTING LINE</label><textarea id="scene-subtitle" className="text-input text-area" value={selectedScene.subtitle} onChange={(event) => updateScene("subtitle", event.target.value)} rows={2} /><div className="duration-header"><label className="field-label" htmlFor="scene-duration">DURATION</label><span>{selectedScene.duration}s</span></div><input id="scene-duration" className="range-input" type="range" min="2" max="8" value={selectedScene.duration} onChange={(event) => updateScene("duration", Number(event.target.value))} /><label className="field-label" htmlFor="scene-motion">MOTION PRESET</label><div className="select-wrap"><select id="scene-motion" className="text-input" value={selectedScene.motion} onChange={(event) => updateScene("motion", event.target.value)}><option>Slow reveal</option><option>Focus zoom</option><option>Slide & settle</option><option>Soft fade</option><option>Orbit drift</option></select><ChevronDown size={15} /></div></>}<div className="scene-edit-foot"><span><span className="save-dot" /> Changes save locally</span><span>SCENE {String(activeScene + 1).padStart(2, "0")}</span></div></div></div>}
+
+          {stage === 3 && <div className="export-layout"><div className="export-preview panel"><div className="preview-toolbar"><span><span className="live-dot" /> PREVIEW / {format.toUpperCase()}</span><span>{totalDuration}s total</span></div><div className={`final-film format-${format.startsWith("Portrait") ? "portrait" : format.startsWith("Square") ? "square" : "landscape"} scene-thumb-${activeScene % 4}`}><div className="film-grain" /><div className="film-kicker">{selectedScene?.kind} · {projectName || "YOUR PRODUCT"}</div><h2>{selectedScene?.title}</h2><p>{selectedScene?.subtitle}</p><div className="film-ui"><span /><span /><span /></div><div className="film-progress"><i style={{ width: `${((activeScene + 1) / scenes.length) * 100}%` }} /></div></div><div className="preview-controls"><button className="button button-quiet" onClick={() => setActiveScene((activeScene - 1 + scenes.length) % scenes.length)}><ArrowLeft size={15} /> Previous scene</button><span>SCENE {activeScene + 1} / {scenes.length}</span><button className="button button-quiet" onClick={() => setActiveScene((activeScene + 1) % scenes.length)}>Next scene <ArrowRight size={15} /></button></div><div className="preview-disclaimer"><Sparkles size={15} /><span>This is an animated storyboard preview, not a rendered video. Product footage and reference video have not been composited into an MP4.</span></div></div><aside className="export-side panel"><div className="eyebrow">YOUR FIRST CUT</div><h2>{projectName || "Untitled launch film"}</h2><p className="export-description">A {mood.toLowerCase()} direction with {scenes.length} scenes, ready for your review.</p><div className="export-stat"><span>EST. DURATION</span><strong>{totalDuration} <small>sec</small></strong></div><div className="export-stat"><span>SCENES</span><strong>{scenes.length}</strong></div><div className="export-stat"><span>FORMAT</span><strong className="format-stat">{format.split(" · ")[1]}</strong></div><button className="button button-primary full-width" onClick={downloadStoryboard}>Download storyboard <ArrowDownRight size={16} /></button><button className="button button-secondary full-width" onClick={() => { setStage(2); }}>Edit scenes <Layers3 size={15} /></button><button className="button button-quiet full-width" onClick={() => setShowFeedback(true)}>Give feedback <ArrowUpRight size={14} /></button><p className="export-fineprint">Downloads an editable storyboard JSON. MP4 export is not available in this build.</p></aside></div>}
+
+          <div className="studio-footnote"><span>✳</span> A prototype for original, reference-guided product storytelling.</div>
+        </section>
+      )}
+
+      {showFeedback && <div className="modal-backdrop" role="presentation" onClick={() => setShowFeedback(false)}><div className="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedback-title" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowFeedback(false)} aria-label="Close feedback"><X size={18} /></button><div className="eyebrow">HELP SHAPE CUTLUME</div><h2 id="feedback-title">What should we make better?</h2><p>This early build doesn't send feedback to a server. You can copy your notes and share them with the maker.</p><textarea className="text-input text-area feedback-area" rows={4} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="What felt useful, confusing, or missing?" /><button className="button button-primary full-width" onClick={() => { const text = `Cutlume feedback\n\n${feedback}`; navigator.clipboard?.writeText(text).then(() => window.alert("Feedback copied. Share it with the maker!")).catch(() => window.alert(text)); setShowFeedback(false); }}>Copy feedback <ArrowUpRight size={15} /></button></div></div>}
+    </main>
+  );
+}
