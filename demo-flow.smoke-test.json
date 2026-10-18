@@ -1,0 +1,12 @@
+{
+  "name": "cutlume-smoke-success",
+  "baseUrl": "http://127.0.0.1:4173/demo-smoke-test.html",
+  "outputDir": "recordings",
+  "viewport": { "width": 1280, "height": 800 },
+  "steps": [
+    { "action": "waitForSelector", "selector": "body", "label": "Wait for fixture" },
+    { "action": "fill", "selector": "#prompt", "value": "hello Cutlume", "label": "Enter test prompt" },
+    { "action": "click", "selector": "#run", "label": "Generate answer" },
+    { "action": "waitForText", "text": "Smoke-test answer for: hello Cutlume", "label": "Wait for answer" }
+  ]
+}
