@@ -287,6 +287,7 @@ export default function Home() {
                   Create your first film <ArrowRight size={17} />
                 </button>
                 <a className="text-link" href="#how-it-works"><span className="play-outline"><Play size={12} fill="currentColor" /></span> See the process</a>
+                <a className="text-link" href="/replay"><span className="play-outline"><ArrowUpRight size={12} /></span> Try demo replay</a>
               </div>
               <div className="hero-proof">
                 <div className="avatar-stack"><span>✳</span><span>◈</span><span>↗</span></div>
