@@ -263,6 +263,7 @@ export default function Home() {
           <span>cutlume<span className="brand-period">.</span></span>
         </button>
         <nav className="top-nav" aria-label="Main navigation">
+          <a href="/replay">Demo replay</a>
           <a href="#how-it-works">How it works</a>
           <a href="#principles">The approach</a>
         </nav>
