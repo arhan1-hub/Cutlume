@@ -55,6 +55,7 @@ let video;
 let failedStep = null;
 let failure = null;
 const completedSteps = [];
+let endCardResult = null;
 
 function getLocator(step) {
   if (step.selector) return page.locator(step.selector).first();
@@ -396,7 +397,7 @@ try {
     failedStep = index;
     await runStep(config.steps[index], index);
   }
-  const endCardResult = await showEndCard();
+  endCardResult = await showEndCard();
   failedStep = null;
   console.log("\nWorkflow finished. Finalizing the screen recording...");
 } catch (error) {
@@ -507,7 +508,7 @@ const report = {
   recording: recordingSaved ? outputPath : null,
   mp4: mp4Path,
   mp4Status,
-  endCard: typeof endCardResult !== "undefined" ? endCardResult : null,
+  endCard: endCardResult,
 };
 try {
   await fs.writeFile(reportPath, JSON.stringify(report, null, 2) + "\n", "utf8");
