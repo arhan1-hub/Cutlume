@@ -5,8 +5,8 @@
   "viewport": { "width": 1280, "height": 800 },
   "steps": [
     { "action": "waitForSelector", "selector": "body", "label": "Wait for fixture" },
-    { "action": "fill", "selector": "#prompt", "value": "hello Cutlume", "label": "Enter test prompt" },
-    { "action": "click", "selector": "#run", "label": "Generate answer" },
-    { "action": "waitForText", "text": "Smoke-test answer for: hello Cutlume", "label": "Wait for answer" }
+    { "action": "fill", "selector": "#prompt", "value": "hello Cutlume", "label": "Enter test prompt", "caption": "Start with a clear prompt" },
+    { "action": "click", "selector": "#run", "label": "Generate answer", "caption": "Let Cutlume replay the workflow", "effect": "spotlight" },
+    { "action": "waitForText", "text": "Smoke-test answer for: hello Cutlume", "label": "Wait for answer", "caption": "Wait for the answer to finish" }
   ]
 }
