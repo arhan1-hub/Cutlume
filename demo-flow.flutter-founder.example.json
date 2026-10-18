@@ -50,16 +50,13 @@
       "label": "Wait for the streamed AI answer to finish"
     },
     {
-      "action": "click",
-      "role": "button",
-      "name": "Attach image",
-      "label": "Open image attachment"
-    },
-    {
       "action": "upload",
-      "selector": "input[type='file']",
-      "file": "./fixtures/demo-image.png",
-      "label": "Attach the sample image"
+      "trigger": {
+        "role": "button",
+        "name": "Attach image"
+      },
+      "file": "./fixtures/demo-image.svg",
+      "label": "Open the Flutter file picker and attach the sample image"
     },
     {
       "action": "fill",
