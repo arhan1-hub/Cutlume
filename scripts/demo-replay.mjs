@@ -269,7 +269,7 @@ async function showEndCard() {
     highlight.className = "gradient";
     highlight.textContent = "keeps up.";
     if (headline.toLowerCase().includes("keeps up")) {
-      heading.textContent = headline.replace(/\\s*keeps up\\.?$/i, "");
+      heading.textContent = headline.replace(/\s*keeps up\.?$/i, "");
       heading.append(document.createTextNode(" "));
       heading.append(highlight);
     } else {
