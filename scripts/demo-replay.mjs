@@ -205,6 +205,102 @@ async function applyPresentation(step, index) {
   });
 }
 
+async function showEndCard() {
+  const endCard = config.endCard;
+  if (!endCard?.enabled || failure || !page) return null;
+
+  const durationMs = Math.min(Math.max(Number(endCard.durationMs) || 3500, 1800), 10000);
+  const copy = {
+    brand: endCard.brand || "CUTLUME",
+    headline: endCard.headline || "Your product evolves. Your demo keeps up.",
+    subheadline: endCard.subheadline || "Replay your workflow. Capture a fresh demo. Share it.",
+    cta: endCard.cta || "Make your next demo with Cutlume",
+    accent: config.recordingStyle?.accentColor || "#a78bfa"
+  };
+
+  await page.evaluate(({ brand, headline, subheadline, cta, accent }) => {
+    document.querySelector("#cutlume-recording-overlay")?.remove();
+    const root = document.createElement("div");
+    root.id = "cutlume-end-card";
+    root.setAttribute("aria-hidden", "true");
+    Object.assign(root.style, {
+      position: "fixed", inset: "0", zIndex: "2147483647", overflow: "hidden",
+      display: "grid", placeItems: "center", padding: "36px",
+      pointerEvents: "none", fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
+      color: "#fff", background: "radial-gradient(ellipse at 18% 10%, rgba(124,92,246,.38), transparent 45%), radial-gradient(ellipse at 85% 90%, rgba(34,211,238,.2), transparent 38%), linear-gradient(135deg,#090b14 0%,#121327 52%,#090d17 100%)"
+    });
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes cutlumeEndIn { from { opacity: 0; transform: translateY(22px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+      @keyframes cutlumeEndGlow { 0%,100% { opacity:.42; transform:scale(.96); } 50% { opacity:.8; transform:scale(1.06); } }
+      #cutlume-end-card .glow { position:absolute; width:min(70vw,760px); aspect-ratio:1; border-radius:50%; background:radial-gradient(circle, ${accent}30 0%, transparent 68%); filter:blur(12px); animation:cutlumeEndGlow 5s ease-in-out infinite; }
+      #cutlume-end-card .content { position:relative; width:min(100%,920px); text-align:center; animation:cutlumeEndIn .7s cubic-bezier(.2,.8,.2,1) both; }
+      #cutlume-end-card .brand { display:inline-flex; align-items:center; gap:12px; margin-bottom:clamp(28px,5vh,52px); color:#f8f7ff; font-size:clamp(15px,1.8vw,21px); font-weight:900; letter-spacing:.16em; }
+      #cutlume-end-card .logo { display:grid; place-items:center; width:clamp(42px,5vw,58px); height:clamp(42px,5vw,58px); border-radius:18px; color:#10111b; font-size:clamp(22px,2.8vw,31px); letter-spacing:-.08em; background:linear-gradient(135deg,#c4b5fd,#67e8f9); box-shadow:0 8px 38px ${accent}45; }
+      #cutlume-end-card .eyebrow { color:#c4b5fd; font-size:clamp(10px,1.1vw,13px); font-weight:850; letter-spacing:.22em; text-transform:uppercase; margin-bottom:20px; }
+      #cutlume-end-card h1 { margin:0 auto; max-width:850px; font-size:clamp(34px,6vw,76px); line-height:.99; letter-spacing:-.065em; font-weight:850; text-wrap:balance; }
+      #cutlume-end-card .gradient { color:transparent; background:linear-gradient(100deg,#c4b5fd 10%,#fff 48%,#67e8f9 90%); -webkit-background-clip:text; background-clip:text; }
+      #cutlume-end-card .sub { max-width:650px; margin:26px auto 0; color:#b8bfd4; font-size:clamp(15px,1.8vw,21px); line-height:1.5; text-wrap:balance; }
+      #cutlume-end-card .cta { display:inline-flex; align-items:center; gap:12px; margin-top:clamp(28px,5vh,48px); padding:16px 24px; border:1px solid rgba(255,255,255,.24); border-radius:15px; color:#10111b; background:linear-gradient(110deg,#c4b5fd,#67e8f9); font-size:clamp(13px,1.35vw,16px); font-weight:850; box-shadow:0 12px 42px ${accent}35; }
+      #cutlume-end-card .foot { position:absolute; left:20px; right:20px; bottom:20px; display:flex; justify-content:space-between; gap:16px; color:#727b99; font-size:clamp(9px,.9vw,11px); letter-spacing:.12em; text-transform:uppercase; }
+      @media(max-width:600px) { #cutlume-end-card .foot { justify-content:center; } #cutlume-end-card .foot span:last-child { display:none; } }
+    `;
+    root.appendChild(style);
+    const glow = document.createElement("div");
+    glow.className = "glow";
+    root.appendChild(glow);
+    const content = document.createElement("div");
+    content.className = "content";
+    const brandRow = document.createElement("div");
+    brandRow.className = "brand";
+    const logo = document.createElement("span");
+    logo.className = "logo";
+    logo.textContent = "C";
+    const brandName = document.createElement("span");
+    brandName.textContent = brand;
+    brandRow.append(logo, brandName);
+    const eyebrow = document.createElement("div");
+    eyebrow.className = "eyebrow";
+    eyebrow.textContent = "A fresh demo, ready to share";
+    const heading = document.createElement("h1");
+    heading.append(document.createTextNode(headline + " "));
+    const highlight = document.createElement("span");
+    highlight.className = "gradient";
+    highlight.textContent = "keeps up.";
+    if (headline.toLowerCase().includes("keeps up")) {
+      heading.textContent = headline.replace(/\\s*keeps up\\.?$/i, "");
+      heading.append(document.createTextNode(" "));
+      heading.append(highlight);
+    } else {
+      heading.textContent = headline;
+    }
+    const sub = document.createElement("p");
+    sub.className = "sub";
+    sub.textContent = subheadline;
+    const button = document.createElement("div");
+    button.className = "cta";
+    button.textContent = cta + "  ↗";
+    content.append(brandRow, eyebrow, heading, sub, button);
+    const foot = document.createElement("div");
+    foot.className = "foot";
+    const left = document.createElement("span");
+    left.textContent = "CUTLUME  ·  REPLAY. REFRESH. SHARE.";
+    const right = document.createElement("span");
+    right.textContent = "YOUR WORKFLOW, ON REPEAT";
+    foot.append(left, right);
+    root.append(content, foot);
+    document.documentElement.appendChild(root);
+  }, copy);
+
+  const screenshotPath = path.join(outputDir, `${safeName}-${stamp}-end-card.png`);
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: screenshotPath, fullPage: false }).catch(() => {});
+  await page.waitForTimeout(durationMs);
+  await page.evaluate(() => document.querySelector("#cutlume-end-card")?.remove());
+  console.log(`Branded end card shown for ${durationMs}ms.`);
+  return { status: "shown", durationMs, screenshot: screenshotPath, headline: copy.headline };
+}
+
 async function runStep(step, index) {
   const label = step.label || `${step.action} ${step.selector || step.text || step.value || ""}`.trim();
   console.log(`[${index + 1}/${config.steps.length}] ${label}`);
@@ -300,6 +396,7 @@ try {
     failedStep = index;
     await runStep(config.steps[index], index);
   }
+  const endCardResult = await showEndCard();
   failedStep = null;
   console.log("\nWorkflow finished. Finalizing the screen recording...");
 } catch (error) {
@@ -410,6 +507,7 @@ const report = {
   recording: recordingSaved ? outputPath : null,
   mp4: mp4Path,
   mp4Status,
+  endCard: typeof endCardResult !== "undefined" ? endCardResult : null,
 };
 try {
   await fs.writeFile(reportPath, JSON.stringify(report, null, 2) + "\n", "utf8");
