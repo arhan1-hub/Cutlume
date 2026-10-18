@@ -3,10 +3,17 @@
   "baseUrl": "http://127.0.0.1:4173/demo-smoke-test.html",
   "outputDir": "recordings",
   "viewport": { "width": 1280, "height": 800 },
+  "recordingStyle": { "accentColor": "#a78bfa" },
   "steps": [
-    { "action": "waitForSelector", "selector": "body", "label": "Wait for fixture" },
-    { "action": "fill", "selector": "#prompt", "value": "hello Cutlume", "label": "Enter test prompt", "caption": "Start with a clear prompt" },
-    { "action": "click", "selector": "#run", "label": "Generate answer", "caption": "Let Cutlume replay the workflow", "effect": "spotlight" },
-    { "action": "waitForText", "text": "Smoke-test answer for: hello Cutlume", "label": "Wait for answer", "caption": "Wait for the answer to finish" }
+    { "action": "waitForSelector", "selector": "body", "label": "Load the polished demo workspace" },
+    { "action": "fill", "selector": "#prompt", "value": "hello Cutlume", "label": "Write a prompt", "caption": "01 · Start with a clear prompt", "presentationMs": 1700 },
+    { "action": "click", "selector": "#run", "label": "Generate the sample answer", "caption": "02 · Turn the prompt into a useful answer", "effect": "spotlight", "pauseAfter": 650, "presentationMs": 1800 },
+    { "action": "waitForText", "text": "Here’s a concise starting point for “hello Cutlume”", "label": "Confirm the generated answer", "caption": "The answer appears in the conversation", "presentationMs": 1600 },
+    { "action": "click", "selector": "#attach", "label": "Attach the sample image", "caption": "03 · Add visual context", "effect": "spotlight", "pauseAfter": 450, "presentationMs": 1800 },
+    { "action": "fill", "selector": "#image-question", "value": "What stands out in this image?", "label": "Ask about the image", "caption": "04 · Ask a follow-up about the image", "presentationMs": 1700 },
+    { "action": "click", "selector": "#ask-image", "label": "Generate sample image insights", "caption": "Explore insights from the visual", "effect": "spotlight", "pauseAfter": 450, "presentationMs": 1800 },
+    { "action": "waitForText", "text": "The visual has a clear focal point", "label": "Confirm image insights", "caption": "Image insights are shown in the conversation", "presentationMs": 1600 },
+    { "action": "click", "selector": "#upgrade", "label": "Open the upgrade screen", "caption": "05 · Finish on the upgrade screen", "effect": "spotlight", "pauseAfter": 800, "presentationMs": 2000 },
+    { "action": "waitForSelector", "selector": "#paywall:not(.hidden)", "label": "Confirm the upgrade screen is visible", "caption": "Upgrade preview · no checkout or payment is connected", "presentationMs": 2000 }
   ]
 }
