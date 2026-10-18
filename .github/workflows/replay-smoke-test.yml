@@ -57,7 +57,9 @@ jobs:
             if (report.status !== "passed") throw new Error("Success run report did not pass");
             if (!report.recording || !fs.statSync(report.recording).size) throw new Error("WebM missing or empty");
             if (report.mp4Status !== "created" || !report.mp4 || !fs.statSync(report.mp4).size) throw new Error("MP4 missing or empty");
-            console.log("Success replay, WebM and MP4 verified.");
+            if (report.endCard?.status !== "shown") throw new Error("Branded end card was not shown");
+            if (!report.endCard.screenshot || !fs.existsSync(report.endCard.screenshot) || !fs.statSync(report.endCard.screenshot).size) throw new Error("End-card screenshot missing or empty");
+            console.log("Success replay, WebM, MP4 and branded end card verified.");
           '
 
       - name: Test intentional failure still finalizes a recording and report
