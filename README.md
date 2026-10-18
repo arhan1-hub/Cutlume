@@ -15,6 +15,26 @@ Define a browser workflow in JSON, replay it against a local or deployed web app
 - A desktop environment or headless browser environment
 - Optional: FFmpeg installed and available on PATH for automatic WebM-to-MP4 conversion
 
+### Reusable captions and effects
+
+Each JSON step can optionally include a `caption` that appears in the recorded video while that step runs. Use `"effect": "spotlight"` to add a pulsing highlight around a locator target or coordinate click. Set a shared accent with `"recordingStyle": { "accentColor": "#8b5cf6" }`. These overlays are injected into the recorded page, so they are replayed with the workflow rather than manually rebuilt in an editor. They are visual overlays, not a full timeline editor; captions currently appear at the bottom of the viewport.
+
+Example step:
+
+```json
+{
+  "action": "click",
+  "selector": "button[type='submit']",
+  "caption": "Generate your result",
+  "effect": "spotlight",
+  "pauseAfter": 900
+}
+```
+
+### Automated smoke test
+
+The `Replay smoke test` GitHub Actions workflow exercises a successful replay and an intentional missing-selector failure. It checks that WebM recordings and failure screenshots/reports are preserved and that MP4 conversion produces a non-empty file when FFmpeg is installed. Run it from **GitHub → Actions → Replay smoke test → Run workflow** on the prototype branch. Artifacts are retained for 7 days. This test uses a local fixture page; it does not validate the founder's Flutter app.
+
 ### Quick start
 
 ```bash
