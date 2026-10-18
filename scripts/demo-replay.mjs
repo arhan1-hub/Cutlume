@@ -159,10 +159,19 @@ async function runStep(step, index) {
       await typeValue(step);
       break;
     case "upload": {
-      const locator = getLocator(step);
-      if (!locator) throw new Error("upload needs a selector or locator target for the file input");
       if (!step.file) throw new Error("upload needs a file path");
-      await locator.setInputFiles(path.resolve(step.file), { timeout: step.timeout || 10000 });
+      const filePath = path.resolve(step.file);
+      await fs.access(filePath);
+      if (step.trigger) {
+        const chooserPromise = page.waitForEvent("filechooser", { timeout: step.timeout || 10000 });
+        await clickTarget(step.trigger);
+        const chooser = await chooserPromise;
+        await chooser.setFiles(filePath);
+      } else {
+        const locator = getLocator(step);
+        if (!locator) throw new Error("upload needs a selector for the file input, or a trigger target for a file chooser");
+        await locator.setInputFiles(filePath, { timeout: step.timeout || 10000 });
+      }
       break;
     }
     case "press": {
