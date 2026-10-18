@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <rect width="1200" height="800" fill="#eef2ff"/>
+  <rect x="70" y="70" width="1060" height="660" rx="36" fill="#ffffff" stroke="#c7d2fe" stroke-width="4"/>
+  <circle cx="330" cy="300" r="110" fill="#a5b4fc"/>
+  <path d="M190 560 L410 340 L560 480 L690 390 L950 620 L190 620 Z" fill="#6366f1"/>
+  <circle cx="850" cy="245" r="58" fill="#fbbf24"/>
+  <text x="600" y="690" font-family="Arial, sans-serif" font-size="30" text-anchor="middle" fill="#3730a3">Cutlume sample upload image</text>
+</svg>
