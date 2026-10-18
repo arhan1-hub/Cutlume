@@ -273,6 +273,8 @@ async function runStep(step, index) {
       throw new Error(`Unknown action "${step.action}". Supported: goto, click/clickAt, fill, type/typeAt, upload, press, wait, waitForSelector, waitForText, waitForStableText, scroll, screenshot.`);
   }
   if (step.pauseAfter) await page.waitForTimeout(Math.min(Number(step.pauseAfter), 15000));
+  const presentationHoldMs = Number(step.presentationMs ?? (step.caption || step.effect ? 1600 : 0));
+  if (presentationHoldMs > 0) await page.waitForTimeout(Math.min(Math.max(presentationHoldMs, 0), 10000));
   await page.evaluate(() => document.querySelector("#cutlume-recording-overlay")?.remove());
   completedSteps.push({ step: index + 1, label, action: step.action, status: "passed", completedAt: new Date().toISOString() });
 }
