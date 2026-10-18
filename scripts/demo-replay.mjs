@@ -143,9 +143,70 @@ async function waitForStableText(step) {
   throw new Error(`Text did not stabilize within ${timeout}ms`);
 }
 
+async function applyPresentation(step, index) {
+  await page.evaluate(() => document.querySelector("#cutlume-recording-overlay")?.remove());
+  if (!step.caption && !step.effect) return;
+
+  let targetBox = null;
+  if (step.effect === "spotlight") {
+    if (hasCoordinates(step)) {
+      targetBox = { x: step.x - 24, y: step.y - 24, width: 48, height: 48 };
+    } else {
+      const locator = getLocator(step);
+      if (locator) {
+        targetBox = await locator.boundingBox().catch(() => null);
+      }
+    }
+  }
+
+  await page.evaluate(({ caption, effect, targetBox, index, accent }) => {
+    const root = document.createElement("div");
+    root.id = "cutlume-recording-overlay";
+    root.setAttribute("aria-hidden", "true");
+    Object.assign(root.style, {
+      position: "fixed", inset: "0", zIndex: "2147483647",
+      pointerEvents: "none", fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
+    });
+
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes cutlumeCaptionIn { from { opacity: 0; transform: translate(-50%, 14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+      @keyframes cutlumeSpotPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,.12), 0 0 0 3px ${accent}; } 50% { box-shadow: 0 0 0 10px rgba(255,255,255,.06), 0 0 0 3px ${accent}; } }
+      #cutlume-caption { position: absolute; left: 50%; bottom: 42px; transform: translateX(-50%); max-width: min(82vw, 900px); padding: 13px 22px; border: 1px solid rgba(255,255,255,.22); border-radius: 14px; background: rgba(12,15,25,.88); color: white; font-size: 20px; font-weight: 650; letter-spacing: -.02em; line-height: 1.35; text-align: center; box-shadow: 0 12px 40px rgba(0,0,0,.3); backdrop-filter: blur(12px); animation: cutlumeCaptionIn .28s ease-out both; }
+      #cutlume-spotlight { position: absolute; border: 2px solid ${accent}; border-radius: 12px; background: rgba(255,255,255,.025); animation: cutlumeSpotPulse 1.25s ease-in-out infinite; }
+    `;
+    root.appendChild(style);
+    if (caption) {
+      const label = document.createElement("div");
+      label.id = "cutlume-caption";
+      label.textContent = caption;
+      root.appendChild(label);
+    }
+    if (effect === "spotlight" && targetBox) {
+      const ring = document.createElement("div");
+      ring.id = "cutlume-spotlight";
+      Object.assign(ring.style, {
+        left: Math.max(0, targetBox.x - 6) + "px",
+        top: Math.max(0, targetBox.y - 6) + "px",
+        width: Math.max(48, targetBox.width + 12) + "px",
+        height: Math.max(48, targetBox.height + 12) + "px"
+      });
+      root.appendChild(ring);
+    }
+    document.documentElement.appendChild(root);
+  }, {
+    caption: step.caption || "",
+    effect: step.effect || "",
+    targetBox,
+    index,
+    accent: config.recordingStyle?.accentColor || "#8b5cf6"
+  });
+}
+
 async function runStep(step, index) {
   const label = step.label || `${step.action} ${step.selector || step.text || step.value || ""}`.trim();
   console.log(`[${index + 1}/${config.steps.length}] ${label}`);
+  await applyPresentation(step, index);
 
   switch (step.action) {
     case "goto":
@@ -212,6 +273,7 @@ async function runStep(step, index) {
       throw new Error(`Unknown action "${step.action}". Supported: goto, click/clickAt, fill, type/typeAt, upload, press, wait, waitForSelector, waitForText, waitForStableText, scroll, screenshot.`);
   }
   if (step.pauseAfter) await page.waitForTimeout(Math.min(Number(step.pauseAfter), 15000));
+  await page.evaluate(() => document.querySelector("#cutlume-recording-overlay")?.remove());
   completedSteps.push({ step: index + 1, label, action: step.action, status: "passed", completedAt: new Date().toISOString() });
 }
 
