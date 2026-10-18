@@ -90,5 +90,13 @@
       "caption": "One workflow. A fresh demo, ready to share.",
       "presentationMs": 2000
     }
-  ]
+  ],
+  "endCard": {
+    "enabled": true,
+    "durationMs": 3500,
+    "brand": "CUTLUME",
+    "headline": "Your product evolves. Your demo keeps up.",
+    "subheadline": "Replay your workflow. Capture a fresh demo. Share it.",
+    "cta": "Make your next demo with Cutlume"
+  }
 }
