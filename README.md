@@ -2,56 +2,84 @@
 
 **Reusable product-demo recordings for indie founders — early prototype.**
 
-Cutlume is exploring two related workflows: creating launch-style videos and replaying browser demos when a product changes. The current demo-replay prototype is a local Node.js + Playwright script, separate from the hosted creative studio.
+Cutlume is exploring two related workflows: creating launch-style videos and replaying browser demos after a product changes. The demo-replay prototype is a local Node.js + Playwright script, separate from the hosted creative studio.
 
-## Demo replay prototype (experimental)
+## Demo replay prototype
 
-The first experiment lets you define a browser workflow in JSON, replay it against a local or deployed web build, and save a fresh WebM screen recording. It is designed to validate the core “re-run the same demo after a UI change” problem before building a polished recorder UI.
+Define a browser workflow in JSON, replay it against a local or deployed web app, and save a fresh recording. JSON files can be version-controlled; credentials should stay in local environment variables and never be committed.
 
 ### Requirements
 
 - Node.js 20+
-- A desktop environment where Chromium can open a browser window (use `--headless` for a headless environment)
-- A local web app running, such as a Flutter web build
+- Chromium installed through Playwright
+- A desktop environment or headless browser environment
+- Optional: FFmpeg installed and available on PATH for automatic WebM-to-MP4 conversion
 
-### Try it
+### Quick start
 
 ```bash
 npm install
 npx playwright install chromium
 cp demo-flow.example.json demo-flow.json
-```
-
-Edit `demo-flow.json` so `baseUrl` points to your app and each step uses selectors that actually exist in your UI. Then run:
-
-```bash
 npm run demo:replay
 ```
 
-To override the target URL:
-
-```bash
-npm run demo:replay -- --url http://127.0.0.1:3000
-```
-
-To run without showing the browser window:
+Edit `demo-flow.json` so `baseUrl` points to your app and its selectors match the UI. To run headlessly:
 
 ```bash
 npm run demo:replay -- --headless
 ```
 
-The script supports `goto`, `click`, `fill`, `type`, `press`, `wait`, `waitForSelector`, `scroll`, and `screenshot` steps. Use stable selectors where possible. If a selector breaks after a UI change, replay stops and reports which step failed instead of pretending the recording succeeded.
+To use a different URL without editing the config:
 
-Recordings are written to `recordings/` as WebM files. The example flow is only a template; its selectors are placeholders and must be adapted to your app. Use a test account and avoid real payment flows or sensitive personal data.
+```bash
+npm run demo:replay -- --url https://your-demo.example
+```
 
-### Current limitations
+### Flutter Web founder workflow template
 
-- This is a developer-oriented proof of concept, not a no-code recorder UI.
-- The workflow is configured in JSON; it does not yet record actions by clicking a “record” button.
-- It works with browser-based apps, including Flutter web builds. Native Flutter emulators/simulators are not supported yet.
-- It captures a fresh browser video, but does not yet reapply caption/motion templates or export MP4.
-- Dynamic UI changes can break selectors. Failure detection exists, but automatic repair does not.
-- It runs locally, so your local development server does not need to be exposed publicly.
+A starter workflow matching the founder's proposed demo (login → prompt → wait for streamed answer → attach image → ask about image → open paywall) is in `demo-flow.flutter-founder.example.json`.
+
+Copy it and edit the target URL/selectors after the founder sends their separate demo deployment:
+
+```bash
+cp demo-flow.flutter-founder.example.json demo-flow.json
+```
+
+The template deliberately uses placeholder accessibility names and `[data-testid='assistant-response']`; those must be adjusted to the real app. Do not guess selectors before inspecting the deployed demo. It uses `{{env:DEMO_EMAIL}}` and `{{env:DEMO_PASSWORD}}` placeholders so secrets can be supplied locally without putting credentials in JSON. Set those environment variables in your terminal before replaying. Never commit the local `demo-flow.json` file or real credentials.
+
+The template includes `fixtures/demo-image.svg` as a harmless sample upload. It opens the app's file chooser through the configured attachment button, which is useful when a Flutter app does not expose a straightforward file input.
+
+### Locators and Flutter canvas support
+
+Supported targets include CSS `selector`, accessible `role` + `name`, visible `text`, `label`, `placeholder`, and `testId`. Prefer Flutter's semantics/accessibility tree where the app exposes it. If the app renders controls on a canvas and semantics are unavailable, actions can use coordinates:
+
+```json
+{ "action": "clickAt", "x": 640, "y": 420, "label": "Tap the prompt field" }
+{ "action": "typeAt", "x": 640, "y": 420, "value": "Hello", "label": "Type into the focused field" }
+```
+
+Coordinates depend on viewport size and layout, so they are a fallback rather than the preferred locator strategy.
+
+### Streamed answers, uploads, and failures
+
+The runner supports `goto`, `click`/`clickAt`, `fill`, `type`/`typeAt`, `press`, `upload`, `wait`, `waitForSelector`, `waitForText`, `waitForStableText`, `scroll`, and `screenshot`. `waitForStableText` waits until a target's text stops changing for a configured period, which can help with streamed AI responses.
+
+Each run writes a JSON report in `recordings/` with completed steps and any failure details. When possible, it also saves a screenshot of the failure point and finalizes the partial recording. This is intended to make a failed test diagnosable instead of leaving an unexplained “no such file” error.
+
+### MP4 export
+
+The replay records a WebM first. If FFmpeg is installed and available on PATH, the runner automatically converts the video to H.264 MP4 with fast-start metadata. If FFmpeg is unavailable, the WebM remains available and the report explains why no MP4 was created. Use `--no-mp4` to skip the conversion check.
+
+This is separate from the creative studio's existing browser-based MP4 storyboard export. Replay MP4 conversion depends on FFmpeg; it is not a pure browser conversion.
+
+### Safety
+
+- Use only a separate demo deployment and test credentials.
+- Keep the test database isolated.
+- Do not run real payment actions or submit real personal data.
+- Keep credentials out of version-controlled JSON and screenshots.
+- Replay is local; the app URL is visited from your machine.
 
 ## Existing creative studio
 
@@ -74,11 +102,4 @@ npm run dev
 
 Open the local URL shown by Next.js.
 
-## Privacy and safety notes
-
-- Demo replay runs on your own machine and visits the URL you configure.
-- Avoid using production credentials or real payment actions in a demo flow.
-- Project settings and storyboard are stored in the current browser using localStorage.
-- The prototype has no accounts, cloud uploads, or cross-device sync.
-- Browser video recording uses your device and can be slow on lower-powered hardware.
-- Cutlume is an early validation prototype; its brand name has not been legally cleared.
+Project settings and storyboard are stored in the current browser using localStorage. The prototype has no accounts, cloud uploads, or cross-device project sync. Cutlume is an early validation prototype; its brand name has not been legally cleared.
