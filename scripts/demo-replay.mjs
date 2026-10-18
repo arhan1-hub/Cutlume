@@ -87,8 +87,15 @@ async function focusCoordinates(step) {
   await page.mouse.click(step.x, step.y);
 }
 
+function resolveEnv(value) {
+  return String(value ?? "").replace(/\\{\\{env:([A-Z0-9_]+)\\}\\}/g, (_, key) => {
+    if (process.env[key] === undefined) throw new Error(`Missing environment variable ${key}; set it before replaying this workflow.`);
+    return process.env[key];
+  });
+}
+
 async function typeValue(step) {
-  const value = String(step.value ?? "");
+  const value = resolveEnv(step.value);
   if (hasCoordinates(step)) {
     await focusCoordinates(step);
     await page.keyboard.insertText(value);
@@ -111,6 +118,29 @@ async function waitForText(step) {
     .waitFor({ state: step.state || "visible", timeout: step.timeout || 20000 });
 }
 
+async function waitForStableText(step) {
+  const locator = getLocator(step);
+  if (!locator) throw new Error("waitForStableText needs a selector, role/name, text, label, placeholder, or testId");
+  const timeout = step.timeout || 30000;
+  const stableMs = step.stableMs || 1800;
+  const pollMs = step.pollMs || 250;
+  await locator.waitFor({ state: "visible", timeout });
+  const started = Date.now();
+  let previous = null;
+  let unchangedSince = Date.now();
+  while (Date.now() - started < timeout) {
+    const current = (await locator.innerText().catch(() => "")).trim();
+    if (current && current === previous) {
+      if (Date.now() - unchangedSince >= stableMs) return;
+    } else {
+      previous = current;
+      unchangedSince = Date.now();
+    }
+    await page.waitForTimeout(pollMs);
+  }
+  throw new Error(`Text did not stabilize within ${timeout}ms`);
+}
+
 async function runStep(step, index) {
   const label = step.label || `${step.action} ${step.selector || step.text || step.value || ""}`.trim();
   console.log(`[${index + 1}/${config.steps.length}] ${label}`);
@@ -128,6 +158,13 @@ async function runStep(step, index) {
     case "typeAt":
       await typeValue(step);
       break;
+    case "upload": {
+      const locator = getLocator(step);
+      if (!locator) throw new Error("upload needs a selector or locator target for the file input");
+      if (!step.file) throw new Error("upload needs a file path");
+      await locator.setInputFiles(path.resolve(step.file), { timeout: step.timeout || 10000 });
+      break;
+    }
     case "press": {
       if (hasCoordinates(step)) await focusCoordinates(step);
       else {
@@ -150,6 +187,9 @@ async function runStep(step, index) {
     case "waitForText":
       await waitForText(step);
       break;
+    case "waitForStableText":
+      await waitForStableText(step);
+      break;
     case "scroll":
       await page.evaluate(({ x, y }) => window.scrollTo({ left: x, top: y, behavior: "smooth" }), { x: step.x || 0, y: step.y || 0 });
       await page.waitForTimeout(450);
@@ -158,7 +198,7 @@ async function runStep(step, index) {
       await page.screenshot({ path: path.resolve(outputDir, step.file || `step-${index + 1}.png`), fullPage: false });
       break;
     default:
-      throw new Error(`Unknown action "${step.action}". Supported: goto, click/clickAt, fill, type/typeAt, press, wait, waitForSelector, waitForText, scroll, screenshot.`);
+      throw new Error(`Unknown action "${step.action}". Supported: goto, click/clickAt, fill, type/typeAt, upload, press, wait, waitForSelector, waitForText, waitForStableText, scroll, screenshot.`);
   }
   if (step.pauseAfter) await page.waitForTimeout(Math.min(Number(step.pauseAfter), 15000));
   completedSteps.push({ step: index + 1, label, action: step.action, status: "passed", completedAt: new Date().toISOString() });
