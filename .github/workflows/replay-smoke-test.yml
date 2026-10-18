@@ -1,0 +1,85 @@
+name: Replay smoke test
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/demo-replay.mjs"
+      - "fixtures/demo-smoke-test.html"
+      - "demo-flow.smoke-*.json"
+      - ".github/workflows/replay-smoke-test.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay-smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Start local test page
+        run: |
+          python3 -m http.server 4173 --directory fixtures > /tmp/cutlume-fixture.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/demo-smoke-test.html > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cutlume-fixture.log
+          exit 1
+
+      - name: Test successful replay, WebM and MP4
+        run: |
+          node scripts/demo-replay.mjs --config demo-flow.smoke-test.json --headless --slow-mo 0
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const report = JSON.parse(fs.readFileSync("recordings/cutlume-smoke-success.report.json", "utf8"));
+            if (report.status !== "passed") throw new Error("Success run report did not pass");
+            if (!report.recording || !fs.statSync(report.recording).size) throw new Error("WebM missing or empty");
+            if (report.mp4Status !== "created" || !report.mp4 || !fs.statSync(report.mp4).size) throw new Error("MP4 missing or empty");
+            console.log("Success replay, WebM and MP4 verified.");
+          '
+
+      - name: Test intentional failure still finalizes a recording and report
+        run: |
+          if node scripts/demo-replay.mjs --config demo-flow.smoke-failure.json --headless --slow-mo 0; then
+            echo "Expected the missing-selector test to fail, but it passed."
+            exit 1
+          fi
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const report = JSON.parse(fs.readFileSync("recordings/cutlume-smoke-failure.report.json", "utf8"));
+            if (report.status !== "failed") throw new Error("Failure run was not marked failed");
+            if (!report.failure) throw new Error("Failure details missing");
+            if (!report.recording || !fs.statSync(report.recording).size) throw new Error("Failure WebM missing or empty");
+            if (!report.failure.screenshot || !fs.existsSync(report.failure.screenshot)) throw new Error("Failure screenshot missing");
+            console.log("Intentional failure correctly reports failure and preserves video/screenshot.");
+          '
+
+      - name: Upload smoke-test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cutlume-replay-smoke-test
+          path: recordings/
+          if-no-files-found: warn
+          retention-days: 7
