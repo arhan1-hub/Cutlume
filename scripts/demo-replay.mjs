@@ -88,8 +88,10 @@ async function focusCoordinates(step) {
 }
 
 function resolveEnv(value) {
-  return String(value ?? "").replace(/\\{\\{env:([A-Z0-9_]+)\\}\\}/g, (_, key) => {
-    if (process.env[key] === undefined) throw new Error(`Missing environment variable ${key}; set it before replaying this workflow.`);
+  const input = String(value ?? "");
+  const pattern = new RegExp("\\{\\{env:([A-Z0-9_]+)\\}\\}", "g");
+  return input.replace(pattern, (_, key) => {
+    if (process.env[key] === undefined) throw new Error("Missing environment variable " + key + "; set it before replaying this workflow.");
     return process.env[key];
   });
 }
