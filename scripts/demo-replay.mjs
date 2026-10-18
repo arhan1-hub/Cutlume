@@ -262,21 +262,40 @@ try {
 }
 
 let recordingSaved = false;
+let recordingError = null;
 try {
   if (!video) throw new Error("No browser video was created.");
   await video.saveAs(outputPath);
+  const saved = await fs.stat(outputPath);
+  if (!saved.isFile() || saved.size === 0) throw new Error("Recording output exists but is empty.");
   recordingSaved = true;
-  console.log(`Recording saved: ${outputPath}`);
 } catch (error) {
-  failure ||= {
-    message: error instanceof Error ? error.message : String(error),
-    step: (failedStep ?? config.steps.length - 1) + 1,
-    label: "finalize recording",
-    occurredAt: new Date().toISOString(),
-  };
-  console.error("Could not finalize the recording:", error instanceof Error ? error.message : error);
-  process.exitCode = 1;
+  recordingError = error instanceof Error ? error.message : String(error);
+  // Playwright normally finalizes through saveAs. If that copy fails, attempt a
+  // direct copy from Playwright's finalized source video before declaring failure.
+  try {
+    if (!video) throw new Error("No browser video was created.");
+    const sourcePath = await video.path();
+    const source = await fs.stat(sourcePath);
+    if (!source.isFile() || source.size === 0) throw new Error("Playwright's source recording is empty.");
+    await fs.copyFile(sourcePath, outputPath);
+    const saved = await fs.stat(outputPath);
+    if (!saved.isFile() || saved.size === 0) throw new Error("Fallback recording copy is empty.");
+    recordingSaved = true;
+    console.warn("Recording saved using the fallback copy after saveAs failed.");
+  } catch (fallbackError) {
+    const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+    failure ||= {
+      message: `saveAs failed: ${recordingError}; fallback copy failed: ${fallbackMessage}`,
+      step: (failedStep ?? config.steps.length - 1) + 1,
+      label: "finalize recording",
+      occurredAt: new Date().toISOString(),
+    };
+    console.error("Could not finalize the recording:", failure.message);
+    process.exitCode = 1;
+  }
 }
+if (recordingSaved) console.log(`Recording saved: ${outputPath}`);
 
 let mp4Path = null;
 let mp4Status = "not-created";
@@ -288,13 +307,22 @@ if (recordingSaved && shouldConvertMp4) {
       "-y", "-i", outputPath, "-an", "-c:v", "libx264", "-pix_fmt", "yuv420p",
       "-movflags", "+faststart", mp4Path,
     ], { encoding: "utf8" });
+    let validMp4 = false;
     if (conversion.status === 0) {
+      try {
+        const output = await fs.stat(mp4Path);
+        validMp4 = output.isFile() && output.size > 0;
+      } catch {
+        validMp4 = false;
+      }
+    }
+    if (validMp4) {
       mp4Status = "created";
       console.log(`MP4 saved: ${mp4Path}`);
     } else {
       mp4Path = null;
       mp4Status = "conversion-failed";
-      console.warn("MP4 conversion failed; the WebM recording is still available.");
+      console.warn("MP4 conversion failed or produced an empty file; the WebM recording is still available.");
       console.warn((conversion.stderr || "").slice(-1200));
     }
   } else {
