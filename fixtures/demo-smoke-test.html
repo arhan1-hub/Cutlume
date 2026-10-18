@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cutlume Replay Smoke Test</title>
+</head>
+<body>
+  <main>
+    <h1>Demo workflow</h1>
+    <label for="prompt">Prompt</label>
+    <input id="prompt" name="prompt" type="text">
+    <button id="run" type="button">Generate answer</button>
+    <p id="answer" aria-live="polite" hidden></p>
+  </main>
+  <script>
+    document.querySelector("#run").addEventListener("click", () => {
+      const prompt = document.querySelector("#prompt").value.trim();
+      const answer = document.querySelector("#answer");
+      answer.hidden = false;
+      answer.textContent = prompt ? "Smoke-test answer for: " + prompt : "Please enter a prompt.";
+    });
+  </script>
+</body>
+</html>
