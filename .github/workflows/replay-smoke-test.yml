@@ -24,7 +24,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - name: Install dependencies
         run: npm install
@@ -52,7 +51,9 @@ jobs:
           node scripts/demo-replay.mjs --config demo-flow.smoke-test.json --headless --slow-mo 0
           node --input-type=module -e '
             import fs from "node:fs";
-            const reportFile = fs.readdirSync("recordings").filter((name) => name.startsWith("cutlume-smoke-success-") && name.endsWith(".report.json")).sort().at(-1);\n            if (!reportFile) throw new Error("Success run report missing");\n            const report = JSON.parse(fs.readFileSync("recordings/" + reportFile, "utf8"));
+            const reportFile = fs.readdirSync("recordings").filter((name) => name.startsWith("cutlume-smoke-success-") && name.endsWith(".report.json")).sort().at(-1);
+            if (!reportFile) throw new Error("Success run report missing");
+            const report = JSON.parse(fs.readFileSync("recordings/" + reportFile, "utf8"));
             if (report.status !== "passed") throw new Error("Success run report did not pass");
             if (!report.recording || !fs.statSync(report.recording).size) throw new Error("WebM missing or empty");
             if (report.mp4Status !== "created" || !report.mp4 || !fs.statSync(report.mp4).size) throw new Error("MP4 missing or empty");
@@ -67,7 +68,9 @@ jobs:
           fi
           node --input-type=module -e '
             import fs from "node:fs";
-            const reportFile = fs.readdirSync("recordings").filter((name) => name.startsWith("cutlume-smoke-failure-") && name.endsWith(".report.json")).sort().at(-1);\n            if (!reportFile) throw new Error("Failure run report missing");\n            const report = JSON.parse(fs.readFileSync("recordings/" + reportFile, "utf8"));
+            const reportFile = fs.readdirSync("recordings").filter((name) => name.startsWith("cutlume-smoke-failure-") && name.endsWith(".report.json")).sort().at(-1);
+            if (!reportFile) throw new Error("Failure run report missing");
+            const report = JSON.parse(fs.readFileSync("recordings/" + reportFile, "utf8"));
             if (report.status !== "failed") throw new Error("Failure run was not marked failed");
             if (!report.failure) throw new Error("Failure details missing");
             if (!report.recording || !fs.statSync(report.recording).size) throw new Error("Failure WebM missing or empty");
