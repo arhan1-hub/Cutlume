@@ -5,7 +5,7 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg ca-certificates fonts-liberation && rm -rf /var/lib/apt/lists/*
-COPY package.json package-lock.json* ./
+COPY package.json ./
 RUN npm install && npx playwright install --with-deps chromium
 COPY . .
 RUN mkdir -p /data/jobs && chown -R node:node /data
