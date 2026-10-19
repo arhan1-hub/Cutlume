@@ -338,7 +338,7 @@ export default function DemoReplayPage() {
                 <span>{jobError || jobMessage}</span>
                 {jobStatus === "completed" && jobId && <a className="button button-primary full-width" href={`/api/replay/${jobId}/video`} download><Download size={15} /> Download recording</a>}
                 {jobStatus === "failed" && <button className="button button-secondary full-width" onClick={() => { setJobId(null); setJobStatus(""); setJobError(""); setJobMessage(""); }}>Edit workflow and retry</button>}
-              </div>
+              </div>}
               {downloaded && <div className="replay-inline-success" role="status"><Check size={14} /> demo-flow.json downloaded. Keep it private if it contains internal URLs.</div>}
               <p className="replay-small-note">The file contains step definitions and your target URL, but no login password or API key.</p>
             </div>
