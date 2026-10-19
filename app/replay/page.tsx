@@ -129,8 +129,11 @@ export default function DemoReplayPage() {
       if (step.action === "fill") {
         return { ...common, selector: step.selector, value: step.value, presentationMs: 1500 };
       }
-      if (step.action === "waitForText" || step.action === "waitForStableText") {
-        return { ...common, selector: step.selector, text: step.value || undefined, stableMs: 1200, timeout: 20000 };
+      if (step.action === "waitForText") {
+        return { ...common, text: step.value, timeout: 20000 };
+      }
+      if (step.action === "waitForStableText") {
+        return { ...common, selector: step.selector, stableMs: 1200, timeout: 20000 };
       }
       if (step.action === "wait") {
         return { ...common, ms: Number(step.value) || 800 };
@@ -286,8 +289,8 @@ export default function DemoReplayPage() {
                     <label className="field-label" htmlFor={`label-${step.id}`}>STEP LABEL</label>
                     <input id={`label-${step.id}`} className="text-input" value={step.label} onChange={(event) => updateStep(step.id, { label: event.target.value })} placeholder="What is happening?" />
                     {step.action !== "wait" && step.action !== "screenshot" && <>
-                      <label className="field-label" htmlFor={`selector-${step.id}`}>{step.action === "waitForText" || step.action === "waitForStableText" ? "TEXT TARGET SELECTOR" : "CSS SELECTOR"}</label>
-                      <input id={`selector-${step.id}`} className="text-input replay-code-input" value={step.selector} onChange={(event) => updateStep(step.id, { selector: event.target.value })} placeholder="e.g. button[type='submit']" />
+                      <label className="field-label" htmlFor={`selector-${step.id}`}>{step.action === "waitForText" ? "NOT USED FOR THIS ACTION" : step.action === "waitForStableText" ? "TEXT TARGET SELECTOR" : "CSS SELECTOR"}</label>
+                      <input id={`selector-${step.id}`} className="text-input replay-code-input" value={step.selector} onChange={(event) => updateStep(step.id, { selector: event.target.value })} {step.action === "waitForText" ? "This action searches for the text below" : "e.g. button[type='submit']"} />
                     </>}
                     {(step.action === "fill" || step.action === "waitForText" || step.action === "waitForStableText" || step.action === "wait") && <>
                       <label className="field-label" htmlFor={`value-${step.id}`}>{step.action === "wait" ? "PAUSE LENGTH (MS)" : step.action === "fill" ? "TEXT TO TYPE" : "EXPECTED TEXT (OPTIONAL)"}</label>
