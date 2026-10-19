@@ -156,6 +156,9 @@ async function applyPresentation(step, index) {
     } else {
       const locator = getLocator(step);
       if (locator) {
+        // Match Playwright's later click behavior: bring off-screen targets into view
+        // before positioning the spotlight and capturing its presentation frame.
+        await locator.scrollIntoViewIfNeeded({ timeout: step.timeout || 10000 }).catch(() => {});
         targetBox = await locator.boundingBox().catch(() => null);
       }
     }
