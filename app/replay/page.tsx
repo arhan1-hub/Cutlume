@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -103,6 +103,33 @@ export default function DemoReplayPage() {
   const [baseUrl, setBaseUrl] = useState("");
   const [steps, setSteps] = useState<ReplayStep[]>(starterSteps);
   const [downloaded, setDownloaded] = useState(false);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [jobStatus, setJobStatus] = useState<string>("");
+  const [jobMessage, setJobMessage] = useState<string>("");
+  const [jobError, setJobError] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!jobId || !["queued", "running"].includes(jobStatus)) return;
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const response = await fetch(`/api/replay/${jobId}`, { cache: "no-store" });
+        const data = await response.json();
+        if (cancelled) return;
+        if (!response.ok) throw new Error(data.error || "Could not check replay status.");
+        setJobStatus(data.status || "running");
+        setJobMessage(data.progress?.message || (data.status === "completed" ? "Your recording is ready." : "Replay is running."));
+        if (data.status === "failed") setJobError(data.error || data.report?.failure?.message || "Replay failed. Edit the workflow and try again.");
+      } catch (error) {
+        if (!cancelled) setJobError(error instanceof Error ? error.message : "Could not check replay status.");
+      }
+    };
+    void poll();
+    const timer = window.setInterval(() => { void poll(); }, 2000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [jobId, jobStatus]);
+
 
   const validUrl = useMemo(() => {
     try {
@@ -174,6 +201,33 @@ export default function DemoReplayPage() {
   function removeStep(id: string) {
     setDownloaded(false);
     setSteps((current) => current.filter((step) => step.id !== id));
+  }
+
+  async function startReplay() {
+    if (!validUrl || steps.length === 0 || submitting) return;
+    setSubmitting(true);
+    setJobId(null);
+    setJobStatus("submitting");
+    setJobMessage("Sending workflow to the replay worker…");
+    setJobError("");
+    try {
+      const response = await fetch("/api/replay", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Replay could not be started.");
+      if (!data.id) throw new Error("Worker did not return a job ID.");
+      setJobId(data.id);
+      setJobStatus(data.status || "queued");
+      setJobMessage("Replay queued. Your video will appear here when it finishes.");
+    } catch (error) {
+      setJobStatus("failed");
+      setJobError(error instanceof Error ? error.message : "Replay could not be started.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function downloadWorkflow() {
@@ -267,7 +321,14 @@ export default function DemoReplayPage() {
                 <FileJson size={21} />
                 <div><strong>Workflow recipe</strong><span>Download editable JSON to use with the local replay runner.</span></div>
               </div>
-              <button className="button button-primary full-width replay-download-button" onClick={downloadWorkflow} disabled={!validUrl || steps.length === 0}><Download size={16} /> Download workflow JSON</button>
+              <button className="button button-primary full-width replay-download-button" onClick={startReplay} disabled={!validUrl || steps.length === 0 || submitting || ["queued", "running", "submitting"].includes(jobStatus)}><Video size={16} /> {submitting || ["queued", "running", "submitting"].includes(jobStatus) ? "Replay in progress…" : "Generate demo video"}</button>
+              <button className="button button-secondary full-width replay-download-button" onClick={downloadWorkflow} disabled={!validUrl || steps.length === 0}><Download size={16} /> Download workflow JSON</button>
+              {(jobStatus || jobError) && <div className={jobError ? "replay-job-status replay-job-error" : "replay-job-status"} role="status">
+                <strong>{jobError ? "Replay needs attention" : jobStatus === "completed" ? "Your demo is ready" : jobStatus === "failed" ? "Replay failed" : "Replay status"}</strong>
+                <span>{jobError || jobMessage}</span>
+                {jobStatus === "completed" && jobId && <a className="button button-primary full-width" href={`/api/replay/${jobId}/video`} download><Download size={15} /> Download recording</a>}
+                {jobStatus === "failed" && <button className="button button-secondary full-width" onClick={() => { setJobId(null); setJobStatus(""); setJobError(""); setJobMessage(""); }}>Edit workflow and retry</button>}
+              </div>
               {downloaded && <div className="replay-inline-success" role="status"><Check size={14} /> demo-flow.json downloaded. Keep it private if it contains internal URLs.</div>}
               <p className="replay-small-note">The file contains step definitions and your target URL, but no login password or API key.</p>
             </div>
@@ -309,8 +370,8 @@ export default function DemoReplayPage() {
 
         <section className="replay-connection">
           <div className="replay-connection-icon"><LockKeyhole size={20} /></div>
-          <div className="replay-connection-copy"><span className="eyebrow">NEXT CONNECTION</span><h2>The replay service still needs to be connected.</h2><p>This screen builds a workflow recipe; it does not run a browser or produce a video from the website yet. The next engineering step is a protected server worker for Playwright and FFmpeg, plus job progress and a secure video download. That worker must be tested before the Generate Demo button can be enabled.</p></div>
-          <div className="replay-connection-status"><span className="replay-status-dot" /> Backend not connected</div>
+          <div className="replay-connection-copy"><span className="eyebrow">NEXT CONNECTION</span><h2>The replay service still needs to be connected.</h2><p>The Generate Demo button submits your workflow to the protected replay API. It will run only after a separate worker URL, private token, and allowed test host are configured for this preview deployment. Until then, the page shows the worker setup error and you can still download the JSON recipe.</p></div>
+          <div className="replay-connection-status"><span className="replay-status-dot" /> Worker is configured by deployment settings</div>
         </section>
 
         <footer className="replay-footer"><Link className="brand replay-brand" href="/"><span className="brand-mark"><Clapperboard size={16} /></span><span>cutlume<span className="brand-period">.</span></span></Link><span>Build the workflow once. Refresh the demo when the product changes.</span><Link className="replay-footer-link" href="/">Launch studio <ArrowUpRight size={13} /></Link></footer>
