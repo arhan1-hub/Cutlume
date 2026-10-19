@@ -55,6 +55,7 @@ let video;
 let failedStep = null;
 let failure = null;
 const completedSteps = [];
+const presentationScreenshots = [];
 let endCardResult = null;
 
 function getLocator(step) {
@@ -372,6 +373,33 @@ async function runStep(step, index) {
       throw new Error(`Unknown action "${step.action}". Supported: goto, click/clickAt, fill, type/typeAt, upload, press, wait, waitForSelector, waitForText, waitForStableText, scroll, screenshot.`);
   }
   if (step.pauseAfter) await page.waitForTimeout(Math.min(Number(step.pauseAfter), 15000));
+  if (config.capturePresentationScreenshots && (step.caption || step.effect)) {
+    const screenshotPath = path.join(outputDir, `${safeName}-${stamp}-step-${String(index + 1).padStart(2, "0")}-presentation.png`);
+    try {
+      const overlayState = await page.evaluate(() => ({
+        caption: document.querySelector("#cutlume-caption")?.textContent || null,
+        spotlightVisible: Boolean(document.querySelector("#cutlume-spotlight")),
+      }));
+      await page.screenshot({ path: screenshotPath, fullPage: false });
+      presentationScreenshots.push({
+        step: index + 1,
+        label,
+        path: screenshotPath,
+        captionVisible: Boolean(overlayState.caption),
+        captionText: overlayState.caption,
+        spotlightVisible: overlayState.spotlightVisible,
+      });
+    } catch (error) {
+      presentationScreenshots.push({
+        step: index + 1,
+        label,
+        path: null,
+        error: error instanceof Error ? error.message : String(error),
+        captionVisible: false,
+        spotlightVisible: false,
+      });
+    }
+  }
   const presentationHoldMs = Number(step.presentationMs ?? (step.caption || step.effect ? 1600 : 0));
   if (presentationHoldMs > 0) await page.waitForTimeout(Math.min(Math.max(presentationHoldMs, 0), 10000));
   await page.evaluate(() => document.querySelector("#cutlume-recording-overlay")?.remove());
@@ -521,6 +549,7 @@ const report = {
   status: failure ? "failed" : "passed",
   totalSteps: config.steps.length,
   completedSteps,
+  presentationScreenshots,
   failure,
   recording: recordingSaved ? outputPath : null,
   mp4: mp4Path,
