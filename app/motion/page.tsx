@@ -291,7 +291,7 @@ export default function MotionStudioPage() {
             <div className="m-add"><span>{preset.duration}</span><span style={{marginLeft:"auto"}}>+ Add scene</span></div>
           </button>)}
         </div>
-        <p className="m-footnote">Motion presets are currently interactive visual concepts. The next integration step is to connect these choices to the real video renderer, generated voice audio, and the replay workflow.</p>
+        <p className="m-footnote">Motion presets now feed the local MP4 renderer. Export currently produces a silent text-led launch film; generated voice audio, reference-video analysis, and replay-to-launch-film integration remain future steps.</p>
       </div>
     </main>
   );
