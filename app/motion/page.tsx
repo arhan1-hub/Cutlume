@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { LaunchFilmComposition } from "../components/LaunchFilmComposition";
 import {
   ArrowLeft, ArrowDown, ArrowUp, AudioLines, Check, Clapperboard,
   Download, Film, GripVertical, Layers3, Mic2, Play, Plus, Sparkles,
@@ -50,6 +51,11 @@ export default function MotionStudioPage() {
   const [mode, setMode] = useState<"ai" | "manual">("ai");
   const [notice, setNotice] = useState("");
   const [dragging, setDragging] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
+  const [exportError, setExportError] = useState("");
+  const [exportSuccess, setExportSuccess] = useState("");
+  const [mood, setMood] = useState("Cinematic");
 
   const duration = useMemo(() => scenes.reduce((sum, scene) => sum + scene.seconds, 0), [scenes]);
 
@@ -98,6 +104,64 @@ export default function MotionStudioPage() {
     a.href = url; a.download = "cutlume-creative-recipe.json"; a.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     setNotice("Your editable creative recipe has been exported.");
+  }
+
+  async function exportMp4() {
+    if (exporting || scenes.length === 0) return;
+    setExporting(true);
+    setExportProgress(0);
+    setExportError("");
+    setExportSuccess("");
+    try {
+      const fps = 30;
+      const dimensions = { width: 1280, height: 720 };
+      const renderScenes = scenes.map((scene, index) => ({
+        id: scene.id,
+        kind: index === 0 ? "01 · OPEN" : index === scenes.length - 1 ? "CLOSING" : `SCENE ${String(index + 1).padStart(2, "0")}`,
+        title: scene.title.trim() || scene.preset.name,
+        subtitle: scene.preset.description,
+        duration: Math.max(2, scene.seconds),
+        motion: scene.preset.motion === "zoom" ? "Focus zoom" : scene.preset.motion === "orbit" ? "Slow reveal" : scene.preset.motion === "split" ? "Slide & settle" : scene.preset.motion === "cursor" ? "Slide & settle" : scene.preset.motion === "type" ? "Focus zoom" : "Slow reveal",
+      }));
+      const durationInFrames = renderScenes.reduce((sum, scene) => sum + Math.max(2, Math.round(scene.duration * fps)), 0);
+      if (typeof window === "undefined" || !("VideoEncoder" in window)) {
+        throw new Error("This browser does not support local MP4 encoding. Try a recent desktop version of Chrome or Edge.");
+      }
+      setExportProgress(3);
+      const { canRenderMediaOnWeb, renderMediaOnWeb } = await import("@remotion/web-renderer");
+      const support = await canRenderMediaOnWeb({ ...dimensions, container: "mp4", videoCodec: "h264", muted: true });
+      if (!support.canRender) {
+        throw new Error(support.issues.filter(issue => issue.severity === "error").map(issue => issue.message).join(" ") || "This browser cannot render the selected MP4 format.");
+      }
+      setExportProgress(8);
+      const { getBlob } = await renderMediaOnWeb({
+        composition: { component: LaunchFilmComposition, durationInFrames, fps, width: dimensions.width, height: dimensions.height, id: "cutlume-motion-studio", defaultProps: { scenes: renderScenes, mood, projectName: productUrl ? (() => { try { return new URL(productUrl).hostname.replace(/^www\\./, ""); } catch { return "Your product"; } })() : "Your product" } },
+        inputProps: { scenes: renderScenes, mood, projectName: productUrl ? (() => { try { return new URL(productUrl).hostname.replace(/^www\\./, ""); } catch { return "Your product"; } })() : "Your product" },
+        container: "mp4",
+        videoCodec: "h264",
+        muted: true,
+        onProgress: ({ progress }: { progress: number }) => {
+          const percent = Math.max(8, Math.min(99, Math.round(progress * 100)));
+          setExportProgress(current => current === percent ? current : percent);
+        },
+      });
+      const blob = await getBlob();
+      if (!blob || blob.size === 0) throw new Error("The renderer did not produce a video file. Try removing a scene and exporting again.");
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "cutlume-motion-launch.mp4";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+      setExportProgress(100);
+      setExportSuccess("Your MP4 is ready. This export contains animated scenes and is currently silent; voice generation is not connected yet.");
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : "MP4 export could not finish.");
+    } finally {
+      setExporting(false);
+    }
   }
 
   const activePreset = presets.find(item => item.id === selected) || presets[0];
@@ -203,10 +267,16 @@ export default function MotionStudioPage() {
               </div>
               <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"center",marginTop:18,paddingTop:15,borderTop:"1px solid #ffffff12"}}>
                 <div><div style={{fontSize:11,fontWeight:700}}>Estimated runtime</div><div style={{fontSize:10,color:"#8c8fa8",marginTop:4}}>{duration}s · {scenes.length} scenes{voiceEnabled ? " · voiceover planned" : ""}</div></div>
-                <button className="m-btn primary" onClick={exportRecipe}><Download size={14}/> Export recipe</button>
+                <div style={{display:"flex",gap:7,flexWrap:"wrap",justifyContent:"flex-end"}}>
+                  <button className="m-btn" onClick={exportRecipe}><Download size={14}/> Export recipe</button>
+                  <button className="m-btn primary" onClick={exportMp4} disabled={exporting || scenes.length === 0}>{exporting ? <><span className="m-live"/> Rendering {exportProgress}%</> : <><Film size={14}/> Export MP4</>}</button>
+                </div>
               </div>
+              {exporting && <div className="m-notice" role="status" aria-live="polite"><span>Rendering MP4 locally in your browser — {exportProgress}%</span><div style={{height:4,background:"#ffffff18",borderRadius:9,overflow:"hidden",marginTop:9}}><div style={{height:"100%",width:`${exportProgress}%`,background:"linear-gradient(90deg,#8b7bff,#f49bc0)",transition:"width .2s"}}/></div></div>}
+              {exportError && <div className="m-notice" role="alert" style={{borderColor:"#ff8f9b66",color:"#ffc4cb"}}><strong>Export couldn't finish.</strong><br/>{exportError}</div>}
+              {exportSuccess && <div className="m-notice" role="status"><Check size={13} style={{display:"inline",marginRight:7}}/>{exportSuccess}</div>}
               {notice && <div className="m-notice" role="status"><Check size={13} style={{display:"inline",marginRight:7}}/>{notice}</div>}
-              <p className="m-footnote">Honest prototype status: this workspace creates and exports an editable storyboard recipe. It does not yet generate AI narration or render a finished launch MP4. Use the <Link href="/" style={{color:"#c9beff",textDecoration:"underline"}}>Launch Studio</Link> for the current video export workflow.</p>
+              <p className="m-footnote">MP4 export renders animated scenes locally with the existing Cutlume renderer. Voice direction is saved in the recipe, but generated narration and mixing audio into the MP4 are not connected yet. Reference-video analysis is also not connected.</p>
             </div>
           </div>
         </section>
