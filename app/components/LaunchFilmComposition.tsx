@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Easing, Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { Easing, Img, Video, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 
 export type LaunchScene = {
   id: string;
@@ -17,6 +17,7 @@ export type LaunchFilmProps = {
   mood: string;
   projectName: string;
   productImage?: string;
+  productVideo?: string;
 };
 
 const palette: Record<string, { a: string; b: string; accent: string; glow: string }> = {
@@ -26,7 +27,7 @@ const palette: Record<string, { a: string; b: string; accent: string; glow: stri
   "High energy": { a: "#071a22", b: "#007d87", accent: "#79f4df", glow: "#00cbb1" },
 };
 
-export function LaunchFilmComposition({ scenes, mood, projectName, productImage }: LaunchFilmProps) {
+export function LaunchFilmComposition({ scenes, mood, projectName, productImage, productVideo }: LaunchFilmProps) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const safeScenes = scenes.length ? scenes : [{
@@ -113,15 +114,19 @@ export function LaunchFilmComposition({ scenes, mood, projectName, productImage 
           </div>
 
           <div style={{ position: "relative", minWidth: 0, opacity: entrance, transform: `translate(${panelShift}px, ${drift}px) rotateY(-5deg) rotateZ(-1deg)`, perspective: 900 }}>
-            {productImage ? (
+            {productVideo || productImage ? (
               <div style={{ ...glass, borderRadius: 17, padding: 8, transform: `scale(${interpolate(entrance, [0, 1], [.94, 1])})`, overflow: "hidden" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 3px 10px", borderBottom: "1px solid rgba(255,255,255,.1)" }}>
                   <i style={{ width: 6, height: 6, borderRadius: 9, background: "#ff7f91" }} />
                   <i style={{ width: 6, height: 6, borderRadius: 9, background: "#f5cb7a" }} />
                   <i style={{ width: 6, height: 6, borderRadius: 9, background: "#7ce0b5" }} />
-                  <div style={{ marginLeft: 8, color: "rgba(255,255,255,.58)", fontSize: 8, letterSpacing: ".1em" }}>YOUR REAL PRODUCT</div>
+                  <div style={{ marginLeft: 8, color: "rgba(255,255,255,.58)", fontSize: 8, letterSpacing: ".1em" }}>{productVideo ? "REPLAYED PRODUCT DEMO" : "YOUR REAL PRODUCT"}</div>
                 </div>
-                <Img src={productImage} alt="" style={{ display: "block", width: "100%", height: "auto", maxHeight: 420, objectFit: "contain", borderRadius: 8, marginTop: 8 }} />
+                {productVideo ? (
+                  <Video src={productVideo} muted loop style={{ display: "block", width: "100%", height: 330, objectFit: "contain", borderRadius: 8, marginTop: 8, background: "#080910" }} />
+                ) : (
+                  <Img src={productImage!} alt="" style={{ display: "block", width: "100%", height: "auto", maxHeight: 420, objectFit: "contain", borderRadius: 8, marginTop: 8 }} />
+                )}
               </div>
             ) : (
             <div style={{ ...glass, borderRadius: 17, padding: 12, transform: `scale(${interpolate(entrance, [0, 1], [.94, 1])})` }}>
