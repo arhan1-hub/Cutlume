@@ -6,6 +6,9 @@ export const dynamic = "force-dynamic";
 const ALLOWED_ACTIONS = new Set(["goto", "click", "clickAt", "fill", "type", "typeAt", "press", "upload", "wait", "waitForSelector", "waitForText", "waitForStableText", "scroll", "screenshot"]);
 const MAX_STEPS = 30;
 const MAX_BODY_BYTES = 64 * 1024;
+const recentJobs = new Map<string, number[]>();
+const RATE_WINDOW_MS = 60 * 60 * 1000;
+const MAX_JOBS_PER_WINDOW = 3;
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -36,6 +39,20 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  const host = request.headers.get("host");
+  if (origin && host) {
+    try {
+      if (new URL(origin).host !== host) return jsonError("Cross-origin replay requests are not allowed.", 403);
+    } catch {
+      return jsonError("Invalid request origin.", 403);
+    }
+  }
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const clientKey = request.headers.get("x-real-ip") || forwarded || "unknown";
+  const now = Date.now();
+  const recent = (recentJobs.get(clientKey) || []).filter((time) => now - time < RATE_WINDOW_MS);
+  if (recent.length >= MAX_JOBS_PER_WINDOW) return jsonError("Replay limit reached for this network. Try again later.", 429);
   const workerUrl = process.env.CUTLUME_REPLAY_WORKER_URL;
   const workerToken = process.env.CUTLUME_REPLAY_WORKER_TOKEN;
   if (!workerUrl || !workerToken || !configuredHosts().length) return jsonError("Replay service is not connected yet. The workflow can still be downloaded as JSON.", 503);
@@ -71,6 +88,8 @@ export async function POST(request: NextRequest) {
     });
     const payload = await upstream.json().catch(() => ({}));
     if (!upstream.ok) return jsonError("Replay worker rejected the job. Check worker configuration and logs.", 502);
+    recent.push(now);
+    recentJobs.set(clientKey, recent);
     return NextResponse.json(payload, { status: 202, headers: { "Cache-Control": "no-store" } });
   } catch { return jsonError("Could not reach the replay worker. The job was not confirmed.", 502); }
 }
