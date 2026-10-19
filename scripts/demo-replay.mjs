@@ -390,6 +390,23 @@ try {
     recordVideo: { dir: outputDir, size: viewport },
   });
   page = await context.newPage();
+  if (process.env.CUTLUME_REPLAY_ENFORCE_HOST_ALLOWLIST === "1") {
+    const allowedHosts = (process.env.CUTLUME_REPLAY_ALLOWED_HOSTS || "").split(",").map((host) => host.trim().toLowerCase()).filter(Boolean);
+    await page.route("**/*", async (route) => {
+      try {
+        const requestUrl = new URL(route.request().url());
+        const host = requestUrl.hostname.toLowerCase();
+        const allowed = allowedHosts.some((item) => host === item || host.endsWith("." + item));
+        if (!allowed || requestUrl.protocol !== "https:" && requestUrl.protocol !== "http:") {
+          await route.abort("blockedbyclient");
+          return;
+        }
+        await route.continue();
+      } catch {
+        await route.abort("blockedbyclient");
+      }
+    });
+  }
   video = page.video();
   await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
 
