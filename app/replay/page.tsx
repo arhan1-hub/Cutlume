@@ -21,6 +21,7 @@ type ReplayAction =
   | "waitForSelector"
   | "click"
   | "fill"
+  | "press"
   | "waitForText"
   | "waitForStableText"
   | "wait"
@@ -88,6 +89,7 @@ const actionLabels: Record<ReplayAction, string> = {
   waitForSelector: "Wait for element",
   click: "Click",
   fill: "Fill text field",
+  press: "Press a key",
   waitForText: "Wait for text",
   waitForStableText: "Wait for stable text",
   wait: "Pause",
@@ -165,6 +167,9 @@ export default function DemoReplayPage() {
       };
       if (step.action === "fill") {
         return { ...common, selector: step.selector, value: step.value, presentationMs: 1500 };
+      }
+      if (step.action === "press") {
+        return { ...common, selector: step.selector, key: step.value || "Enter", presentationMs: 900 };
       }
       if (step.action === "waitForText") {
         return { ...common, text: step.value, timeout: 20000 };
@@ -363,9 +368,9 @@ export default function DemoReplayPage() {
                       <label className="field-label" htmlFor={`selector-${step.id}`}>{step.action === "waitForStableText" ? "TEXT TARGET SELECTOR" : "CSS SELECTOR"}</label>
                       <input id={`selector-${step.id}`} className="text-input replay-code-input" value={step.selector} onChange={(event) => updateStep(step.id, { selector: event.target.value })} placeholder="e.g. button[type='submit']" />
                     </>}
-                    {(step.action === "fill" || step.action === "waitForText" || step.action === "waitForStableText" || step.action === "wait") && <>
-                      <label className="field-label" htmlFor={`value-${step.id}`}>{step.action === "wait" ? "PAUSE LENGTH (MS)" : step.action === "fill" ? "TEXT TO TYPE" : "EXPECTED TEXT (OPTIONAL)"}</label>
-                      <input id={`value-${step.id}`} className="text-input" value={step.value} onChange={(event) => updateStep(step.id, { value: event.target.value })} placeholder={step.action === "wait" ? "800" : "Text or response to wait for"} />
+                    {(step.action === "fill" || step.action === "press" || step.action === "waitForText" || step.action === "waitForStableText" || step.action === "wait") && <>
+                      <label className="field-label" htmlFor={`value-${step.id}`}>{step.action === "wait" ? "PAUSE LENGTH (MS)" : step.action === "fill" ? "TEXT TO TYPE" : step.action === "press" ? "KEY TO PRESS" : "EXPECTED TEXT (OPTIONAL)"}</label>
+                      <input id={`value-${step.id}`} className="text-input" value={step.value} onChange={(event) => updateStep(step.id, { value: event.target.value })} placeholder={step.action === "wait" ? "800" : step.action === "press" ? "Enter" : "Text or response to wait for"} />
                     </>}
                     <label className="field-label" htmlFor={`caption-${step.id}`}>ON-VIDEO CAPTION</label>
                     <input id={`caption-${step.id}`} className="text-input" value={step.caption} onChange={(event) => updateStep(step.id, { caption: event.target.value })} placeholder="A short line that tells the story" />
