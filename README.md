@@ -101,6 +101,14 @@ This is separate from the creative studio's existing browser-based MP4 storyboar
 - Keep credentials out of version-controlled JSON and screenshots.
 - Replay is local; the app URL is visited from your machine.
 
+## Hosted replay worker prototype
+
+The website's Demo Replay workspace can submit a job to a separately hosted worker through protected Next.js API routes. The worker implementation and Dockerfile are in `replay-worker/`. It runs Playwright and FFmpeg outside Vercel, exposes job status, and serves the finished recording through an authenticated worker endpoint proxied by the website.
+
+See [replay-worker/README.md](replay-worker/README.md) and [docs/replay-worker-setup.md](docs/replay-worker-setup.md). The worker is **not deployed or configured by committing this code**. Set `CUTLUME_REPLAY_WORKER_URL`, `CUTLUME_REPLAY_WORKER_TOKEN`, and `CUTLUME_REPLAY_ALLOWED_HOSTS` only in a prototype/preview environment after deploying the worker. Hosted browser requests are restricted to allowlisted hosts, and upload and additional navigation actions are disabled in hosted mode.
+
+This is an MVP worker: its job registry is in memory and resets on restart. Before public production use, add a durable queue/store, per-job container isolation, network egress controls that block private and metadata IP ranges, robust rate limiting, and short-lived authenticated video storage. Do not use production credentials, real customer data, or real payment flows.
+
 ## Existing creative studio
 
 The hosted studio remains an early prototype for editable launch-film storyboards:
