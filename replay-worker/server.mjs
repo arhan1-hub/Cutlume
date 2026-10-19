@@ -103,7 +103,16 @@ async function execute(job) {
     cwd: ROOT, env: { ...process.env, CUTLUME_REPLAY_JOB_ID: job.id, CUTLUME_REPLAY_ENFORCE_HOST_ALLOWLIST: "1" }, stdio: ["ignore", "pipe", "pipe"],
   });
   let logs = "";
-  const append = chunk => { logs = (logs + chunk.toString()).slice(-12000); };
+  let pendingOutput = "";
+  const append = chunk => {
+    const text = chunk.toString();
+    logs = (logs + text).slice(-12000);
+    pendingOutput = (pendingOutput + text).slice(-4000);
+    const matches = [...pendingOutput.matchAll(/\\[(\\d+)\\/(\\d+)\\]\\s+([^\\r\\n]+)/g)];
+    const latest = matches.at(-1);
+    if (latest) job.progress = { currentStep: Number(latest[1]), totalSteps: Number(latest[2]), message: latest[3].trim().slice(0, 180) };
+    if (pendingOutput.length > 3000) pendingOutput = pendingOutput.slice(-1000);
+  };
   proc.stdout.on("data", append);
   proc.stderr.on("data", append);
   const timeout = setTimeout(() => { proc.kill("SIGKILL"); }, TIMEOUT_MS);
