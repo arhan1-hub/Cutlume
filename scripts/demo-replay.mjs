@@ -340,6 +340,7 @@ async function runStep(step, index) {
       presentationScreenshots.push({
         step: index + 1,
         label,
+        effect: step.effect || null,
         path: screenshotPath,
         captionVisible: overlayState.captionVisible,
         captionText: overlayState.caption,
