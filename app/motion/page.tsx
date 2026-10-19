@@ -113,8 +113,9 @@ export default function MotionStudioPage() {
     setExportError("");
     setExportSuccess("");
     try {
-      const fps = 30;
-      const dimensions = { width: 1280, height: 720 };
+      const fps = 24;
+      // Fast, phone-friendly default: about half the pixels and fewer frames than 720p/30fps.
+      const dimensions = { width: 854, height: 480 };
       const renderScenes = scenes.map((scene, index) => ({
         id: scene.id,
         kind: index === 0 ? "01 · OPEN" : index === scenes.length - 1 ? "CLOSING" : `SCENE ${String(index + 1).padStart(2, "0")}`,
@@ -156,7 +157,7 @@ export default function MotionStudioPage() {
       anchor.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 60000);
       setExportProgress(100);
-      setExportSuccess("Your MP4 is ready. This export contains animated scenes and is currently silent; voice generation is not connected yet.");
+      setExportSuccess("Your MP4 is ready to play. Fast export: 480p at 24 fps. It includes animated scenes but no audio yet.");
     } catch (error) {
       setExportError(error instanceof Error ? error.message : "MP4 export could not finish.");
     } finally {
@@ -197,7 +198,7 @@ export default function MotionStudioPage() {
           <div>
             <div className="m-eyebrow"><Sparkles size={13}/> THE CREATIVE PLAYGROUND</div>
             <h1>Borrow the feeling.<br/><span className="m-grad">Make it yours.</span></h1>
-            <p className="m-lede">Start with a launch video you love. Build a storyboard from motion-design building blocks, shape the story with a creative brief, and add narration before exporting your editable recipe.</p>
+            <p className="m-lede">Create a short product-launch video in three steps: describe your product, arrange a few scenes, then export an MP4. Start with the example and change anything you like.</p>
             <div className="m-actions">
               <button className="m-btn primary" onClick={draftStoryboard}><WandSparkles size={15}/> Draft a storyboard</button>
               <button className="m-btn" onClick={() => document.getElementById("motion-library")?.scrollIntoView({behavior:"smooth"})}><Layers3 size={15}/> Explore motion library</button>
@@ -218,20 +219,23 @@ export default function MotionStudioPage() {
           </div>
         </section>
 
+        <section aria-label="How to use Motion Studio" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:10,margin:"0 0 22px"}}>
+          {[["1","Describe your product","Add a website if you have one, then explain what your product does."],["2","Shape the story","Use the starter scenes or tap any motion card to add a scene."],["3","Export your MP4","The video renders on this device. Keep this page open while it works."]].map(([n,title,description])=><div key={n} style={{padding:"14px 15px",border:"1px solid #ffffff17",borderRadius:12,background:"#ffffff05"}}><div style={{display:"flex",alignItems:"center",gap:9,marginBottom:8}}><span style={{display:"grid",placeItems:"center",width:25,height:25,borderRadius:8,background:"#8b7bff22",border:"1px solid #a99aff55",color:"#d2caff",fontSize:12,fontWeight:800}}>{n}</span><strong style={{fontSize:12}}>{title}</strong></div><p style={{margin:0,fontSize:11,color:"#a2a4bb",lineHeight:1.6}}>{description}</p></div>)}
+        </section>
         <section className="m-workspace">
           <div className="m-panel">
             <div className="m-panel-head"><div><h2><Sparkles size={14} style={{display:"inline",marginRight:7,color:"#b9aaff"}}/>Creative direction</h2><p>Tell Cutlume what you are trying to make.</p></div><span className="m-count">01 / INPUT</span></div>
             <div className="m-panel-body">
               <div className="m-mode" role="tablist" aria-label="Creation mode">
-                <button className={mode === "ai" ? "active" : ""} onClick={() => setMode("ai")} role="tab" aria-selected={mode === "ai"}><Sparkles size={13} style={{display:"inline",marginRight:6}}/>AI-directed</button>
+                <button className={mode === "ai" ? "active" : ""} onClick={() => setMode("ai")} role="tab" aria-selected={mode === "ai"}><Sparkles size={13} style={{display:"inline",marginRight:6}}/>Guided draft</button>
                 <button className={mode === "manual" ? "active" : ""} onClick={() => setMode("manual")} role="tab" aria-selected={mode === "manual"}><Layers3 size={13} style={{display:"inline",marginRight:6}}/>Build manually</button>
               </div>
               <label className="m-label" htmlFor="product-url">YOUR PRODUCT WEBSITE</label>
               <input className="m-input" id="product-url" type="url" value={productUrl} onChange={e => setProductUrl(e.target.value)} placeholder="https://your-product.com"/>
-              <p className="m-hint">Prototype input only — this page does not crawl the site yet. Use a public demo URL, not a private or authenticated account.</p>
+              <p className="m-hint">Optional. This URL labels your video for now; Cutlume does not automatically import your website yet. A public demo URL is safest.</p>
               <label className="m-label" htmlFor="reference-url">REFERENCE LAUNCH VIDEO</label>
               <input className="m-input" id="reference-url" type="url" value={referenceUrl} onChange={e => setReferenceUrl(e.target.value)} placeholder="Paste a public video link you like"/>
-              <p className="m-hint">Use the reference to describe style, energy, and pacing. Reference-video analysis is not connected yet.</p>
+              <p className="m-hint">Optional inspiration link. Automatic reference-video analysis is not available yet, so describe the style you like in the brief.</p>
               <label className="m-label" htmlFor="creative-brief">YOUR CREATIVE BRIEF</label>
               <textarea className="m-textarea" id="creative-brief" value={brief} onChange={e => setBrief(e.target.value)} placeholder="What does your product do? What should people feel? Which moments matter?"/>
               <div className="m-footer-actions">
@@ -242,7 +246,7 @@ export default function MotionStudioPage() {
           </div>
 
           <div className="m-panel">
-            <div className="m-panel-head"><div><h2><Film size={15} style={{display:"inline",marginRight:7,color:"#b9aaff"}}/>Your storyboard</h2><p>Choose a motion preset, then reorder the scenes.</p></div><span className="m-count">{scenes.length} SCENES</span></div>
+            <div className="m-panel-head"><div><h2><Film size={15} style={{display:"inline",marginRight:7,color:"#b9aaff"}}/>Your storyboard</h2><p>Your video outline. Edit the order or remove scenes you do not need.</p></div><span className="m-count">{scenes.length} SCENES</span></div>
             <div className="m-panel-body">
               {scenes.length ? <div className="m-timeline">
                 {scenes.map((scene,index) => <div className="m-scene" key={scene.id} draggable onDragStart={() => setDragging(scene.id)} onDragOver={e => e.preventDefault()} onDrop={() => { if (!dragging || dragging === scene.id) return; setScenes(current => {const from=current.findIndex(s=>s.id===dragging);const to=current.findIndex(s=>s.id===scene.id);if(from<0||to<0)return current;const next=[...current];const [item]=next.splice(from,1);next.splice(to,0,item);return next;});setDragging(null);}}>
@@ -272,11 +276,11 @@ export default function MotionStudioPage() {
                   <button className="m-btn primary" onClick={exportMp4} disabled={exporting || scenes.length === 0}>{exporting ? <><span className="m-live"/> Rendering {exportProgress}%</> : <><Film size={14}/> Export MP4</>}</button>
                 </div>
               </div>
-              {exporting && <div className="m-notice" role="status" aria-live="polite"><span>Rendering MP4 locally in your browser — {exportProgress}%</span><div style={{height:4,background:"#ffffff18",borderRadius:9,overflow:"hidden",marginTop:9}}><div style={{height:"100%",width:`${exportProgress}%`,background:"linear-gradient(90deg,#8b7bff,#f49bc0)",transition:"width .2s"}}/></div></div>}
+              {exporting && <div className="m-notice" role="status" aria-live="polite"><span>Rendering on this device — {exportProgress}%. Keep this tab open; fewer/shorter scenes usually finish sooner.</span><div style={{height:4,background:"#ffffff18",borderRadius:9,overflow:"hidden",marginTop:9}}><div style={{height:"100%",width:`${exportProgress}%`,background:"linear-gradient(90deg,#8b7bff,#f49bc0)",transition:"width .2s"}}/></div></div>}
               {exportError && <div className="m-notice" role="alert" style={{borderColor:"#ff8f9b66",color:"#ffc4cb"}}><strong>Export couldn't finish.</strong><br/>{exportError}</div>}
               {exportSuccess && <div className="m-notice" role="status"><Check size={13} style={{display:"inline",marginRight:7}}/>{exportSuccess}</div>}
               {notice && <div className="m-notice" role="status"><Check size={13} style={{display:"inline",marginRight:7}}/>{notice}</div>}
-              <p className="m-footnote">MP4 export renders animated scenes locally with the existing Cutlume renderer. Voice direction is saved in the recipe, but generated narration and mixing audio into the MP4 are not connected yet. Reference-video analysis is also not connected.</p>
+              <p className="m-footnote">Fast export is 854 × 480 at 24 fps to reduce waiting on phones. MP4 export renders animated scenes locally with the existing Cutlume renderer. Voice direction is saved in the recipe, but generated narration and mixing audio into the MP4 are not connected yet. Reference-video analysis is also not connected.</p>
             </div>
           </div>
         </section>
@@ -291,7 +295,7 @@ export default function MotionStudioPage() {
             <div className="m-add"><span>{preset.duration}</span><span style={{marginLeft:"auto"}}>+ Add scene</span></div>
           </button>)}
         </div>
-        <p className="m-footnote">Motion presets now feed the local MP4 renderer. Export currently produces a silent text-led launch film; generated voice audio, reference-video analysis, and replay-to-launch-film integration remain future steps.</p>
+        <p className="m-footnote">Motion presets feed the local MP4 renderer. Export currently produces a silent, animated launch film; generated voice audio, reference-video analysis, and replay-to-launch-film integration remain future steps.</p>
       </div>
     </main>
   );
