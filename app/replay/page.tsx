@@ -288,7 +288,7 @@ export default function DemoReplayPage() {
                     </select>
                     <label className="field-label" htmlFor={`label-${step.id}`}>STEP LABEL</label>
                     <input id={`label-${step.id}`} className="text-input" value={step.label} onChange={(event) => updateStep(step.id, { label: event.target.value })} placeholder="What is happening?" />
-                    {step.action !== "wait" && step.action !== "screenshot" && <>
+                    {step.action !== "wait" && step.action !== "screenshot" && step.action !== "waitForText" && <>
                       <label className="field-label" htmlFor={`selector-${step.id}`}>{step.action === "waitForText" ? "NOT USED FOR THIS ACTION" : step.action === "waitForStableText" ? "TEXT TARGET SELECTOR" : "CSS SELECTOR"}</label>
                       <input id={`selector-${step.id}`} className="text-input replay-code-input" value={step.selector} onChange={(event) => updateStep(step.id, { selector: event.target.value })} {step.action === "waitForText" ? "This action searches for the text below" : "e.g. button[type='submit']"} />
                     </>}
