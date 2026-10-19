@@ -5,8 +5,8 @@ import Link from "next/link";
 import { LaunchFilmComposition } from "../components/LaunchFilmComposition";
 import {
   ArrowLeft, ArrowDown, ArrowUp, AudioLines, Check, Clapperboard,
-  Download, Film, GripVertical, Layers3, Mic2, Play, Plus, Sparkles,
-  WandSparkles, Volume2, X
+  Film, GripVertical, Layers3, Play, Plus, Sparkles,
+  WandSparkles, X
 } from "lucide-react";
 
 type MotionPreset = {
@@ -43,11 +43,9 @@ export default function MotionStudioPage() {
   const [selected, setSelected] = useState("hero");
   const [scenes, setScenes] = useState<Scene[]>(starter);
   const [productUrl, setProductUrl] = useState("");
-  const [referenceUrl, setReferenceUrl] = useState("");
+  const [productImage, setProductImage] = useState<string>("");
+  const [productImageName, setProductImageName] = useState("");
   const [brief, setBrief] = useState("A cinematic launch video for an AI product that helps small teams move faster. Show the real product, one magical moment, and a confident close.");
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
-  const [voice, setVoice] = useState("Warm, confident");
-  const [script, setScript] = useState("Meet a simpler way to get meaningful work done. Less busywork. More momentum. Your next chapter starts here.");
   const [mode, setMode] = useState<"ai" | "manual">("ai");
   const [notice, setNotice] = useState("");
   const [dragging, setDragging] = useState<string | null>(null);
@@ -91,21 +89,6 @@ export default function MotionStudioPage() {
     setNotice("Storyboard draft created from your brief. Choose any scene to refine it.");
   }
 
-  function exportRecipe() {
-    const recipe = {
-      productUrl, referenceUrl, creativeBrief: brief, creationMode: mode,
-      voiceover: { enabled: voiceEnabled, style: voice, script },
-      scenes: scenes.map((scene, index) => ({ order: index + 1, title: scene.title, motionPreset: scene.preset.name, presetId: scene.preset.id, durationSeconds: scene.seconds })),
-      totalDurationSeconds: duration,
-      note: "Creative storyboard recipe. This export does not contain rendered video or generated audio."
-    };
-    const url = URL.createObjectURL(new Blob([JSON.stringify(recipe, null, 2)], { type: "application/json" }));
-    const a = document.createElement("a");
-    a.href = url; a.download = "cutlume-creative-recipe.json"; a.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setNotice("Your editable creative recipe has been exported.");
-  }
-
   async function exportMp4() {
     if (exporting || scenes.length === 0) return;
     setExporting(true);
@@ -136,8 +119,8 @@ export default function MotionStudioPage() {
       }
       setExportProgress(8);
       const { getBlob } = await renderMediaOnWeb({
-        composition: { component: LaunchFilmComposition, durationInFrames, fps, width: dimensions.width, height: dimensions.height, id: "cutlume-motion-studio", defaultProps: { scenes: renderScenes, mood, projectName: productUrl ? (() => { try { return new URL(productUrl).hostname.replace(/^www\\./, ""); } catch { return "Your product"; } })() : "Your product" } },
-        inputProps: { scenes: renderScenes, mood, projectName: productUrl ? (() => { try { return new URL(productUrl).hostname.replace(/^www\\./, ""); } catch { return "Your product"; } })() : "Your product" },
+        composition: { component: LaunchFilmComposition, durationInFrames, fps, width: dimensions.width, height: dimensions.height, id: "cutlume-motion-studio", defaultProps: { scenes: renderScenes, mood, productImage, projectName: productUrl ? (() => { try { return new URL(productUrl).hostname.replace(/^www\\./, ""); } catch { return "Your product"; } })() : "Your product" } },
+        inputProps: { scenes: renderScenes, mood, productImage, projectName: productUrl ? (() => { try { return new URL(productUrl).hostname.replace(/^www\\./, ""); } catch { return "Your product"; } })() : "Your product" },
         container: "mp4",
         videoCodec: "h264",
         muted: true,
@@ -230,12 +213,12 @@ export default function MotionStudioPage() {
                 <button className={mode === "ai" ? "active" : ""} onClick={() => setMode("ai")} role="tab" aria-selected={mode === "ai"}><Sparkles size={13} style={{display:"inline",marginRight:6}}/>Guided draft</button>
                 <button className={mode === "manual" ? "active" : ""} onClick={() => setMode("manual")} role="tab" aria-selected={mode === "manual"}><Layers3 size={13} style={{display:"inline",marginRight:6}}/>Build manually</button>
               </div>
-              <label className="m-label" htmlFor="product-url">YOUR PRODUCT WEBSITE</label>
+              <label className="m-label" htmlFor="product-url">PRODUCT WEBSITE (OPTIONAL)</label>
               <input className="m-input" id="product-url" type="url" value={productUrl} onChange={e => setProductUrl(e.target.value)} placeholder="https://your-product.com"/>
-              <p className="m-hint">Optional. This URL labels your video for now; Cutlume does not automatically import your website yet. A public demo URL is safest.</p>
-              <label className="m-label" htmlFor="reference-url">REFERENCE LAUNCH VIDEO</label>
-              <input className="m-input" id="reference-url" type="url" value={referenceUrl} onChange={e => setReferenceUrl(e.target.value)} placeholder="Paste a public video link you like"/>
-              <p className="m-hint">Optional inspiration link. Automatic reference-video analysis is not available yet, so describe the style you like in the brief.</p>
+              <p className="m-hint">Used to label your video. Cutlume does not import the website automatically yet.</p>
+              <label className="m-label" htmlFor="product-image">REAL PRODUCT SCREENSHOT</label>
+              <input className="m-input" id="product-image" type="file" accept="image/*" onChange={e => { const file = e.target.files?.[0]; if (!file) return; if (productImage) URL.revokeObjectURL(productImage); const next = URL.createObjectURL(file); setProductImage(next); setProductImageName(file.name); setNotice("Screenshot added. It will appear in your exported MP4."); }}/>
+              {productImage && <div style={{display:"flex",alignItems:"center",gap:12,marginTop:10,padding:10,border:"1px solid #ffffff1b",borderRadius:10,background:"#ffffff05"}}><img src={productImage} alt="Selected product screenshot" style={{width:88,height:58,objectFit:"cover",borderRadius:6,border:"1px solid #ffffff20"}}/><div style={{minWidth:0,flex:1}}><div style={{fontSize:11,fontWeight:700,overflowWrap:"anywhere"}}>{productImageName}</div><div style={{fontSize:10,color:"#a2a4bb",marginTop:4}}>Included in the MP4 preview and export</div></div><button type="button" className="m-icon-btn" aria-label="Remove screenshot" onClick={() => {URL.revokeObjectURL(productImage);setProductImage("");setProductImageName("");}}> <X size={13}/> </button></div>}
               <label className="m-label" htmlFor="creative-brief">YOUR CREATIVE BRIEF</label>
               <textarea className="m-textarea" id="creative-brief" value={brief} onChange={e => setBrief(e.target.value)} placeholder="What does your product do? What should people feel? Which moments matter?"/>
               <div className="m-footer-actions">
@@ -257,22 +240,9 @@ export default function MotionStudioPage() {
                 </div>)}
               </div> : <div className="m-empty">Your storyboard is empty.<br/>Choose a motion preset below to start building.</div>}
               <div className="m-drop" onDragOver={e => e.preventDefault()} onDrop={e => {e.preventDefault();if(dragging?.startsWith("preset:")){const p=presets.find(item=>item.id===dragging.slice(7));if(p)addPreset(p);}setDragging(null);}}>Drag a motion preset here to add it to the end of your storyboard</div>
-              <div className="m-section-title"><h2><AudioLines size={16} style={{display:"inline",marginRight:7,color:"#b9aaff"}}/>Voiceover & sound</h2><span>OPTIONAL</span></div>
-              <div className="m-voice">
-                <div className="m-voice-head"><div className="m-voice-title"><span className="m-voice-icon"><Mic2 size={16}/></span><span>AI narration <small style={{display:"block",fontSize:9,color:"#8589a4",fontWeight:400,marginTop:4}}>Script and voice direction</small></span></div><button className={voiceEnabled ? "m-toggle on" : "m-toggle"} onClick={() => setVoiceEnabled(v=>!v)} aria-label="Toggle voiceover" aria-pressed={voiceEnabled}><span/></button></div>
-                {voiceEnabled && <>
-                  <div className="m-wave" aria-hidden="true">{Array.from({length:44},(_,i)=><i key={i} style={{height:`${5+((i*13)%19)}px`}}/>)}</div>
-                  <label className="m-label" htmlFor="voice-style">VOICE DIRECTION</label>
-                  <select className="m-select" id="voice-style" value={voice} onChange={e=>setVoice(e.target.value)}><option>Warm, confident</option><option>Bright, energetic</option><option>Calm, minimal</option><option>Playful, friendly</option><option>Deep, cinematic</option></select>
-                  <label className="m-label" htmlFor="voice-script">NARRATION SCRIPT</label>
-                  <textarea className="m-textarea" id="voice-script" value={script} onChange={e=>setScript(e.target.value)} rows={3}/>
-                  <p className="m-hint"><Volume2 size={12} style={{display:"inline",verticalAlign:"middle",marginRight:4}}/>Voice direction and script are saved in your recipe. Audio generation is not connected yet.</p>
-                </>}
-              </div>
               <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"center",marginTop:18,paddingTop:15,borderTop:"1px solid #ffffff12"}}>
-                <div><div style={{fontSize:11,fontWeight:700}}>Estimated runtime</div><div style={{fontSize:10,color:"#8c8fa8",marginTop:4}}>{duration}s · {scenes.length} scenes{voiceEnabled ? " · voiceover planned" : ""}</div></div>
+                <div><div style={{fontSize:11,fontWeight:700}}>Estimated runtime</div><div style={{fontSize:10,color:"#8c8fa8",marginTop:4}}>{duration}s · {scenes.length} scenes</div></div>
                 <div style={{display:"flex",gap:7,flexWrap:"wrap",justifyContent:"flex-end"}}>
-                  <button className="m-btn" onClick={exportRecipe}><Download size={14}/> Export recipe</button>
                   <button className="m-btn primary" onClick={exportMp4} disabled={exporting || scenes.length === 0}>{exporting ? <><span className="m-live"/> Rendering {exportProgress}%</> : <><Film size={14}/> Export MP4</>}</button>
                 </div>
               </div>
@@ -280,7 +250,7 @@ export default function MotionStudioPage() {
               {exportError && <div className="m-notice" role="alert" style={{borderColor:"#ff8f9b66",color:"#ffc4cb"}}><strong>Export couldn't finish.</strong><br/>{exportError}</div>}
               {exportSuccess && <div className="m-notice" role="status"><Check size={13} style={{display:"inline",marginRight:7}}/>{exportSuccess}</div>}
               {notice && <div className="m-notice" role="status"><Check size={13} style={{display:"inline",marginRight:7}}/>{notice}</div>}
-              <p className="m-footnote">Fast export is 854 × 480 at 24 fps to reduce waiting on phones. MP4 export renders animated scenes locally with the existing Cutlume renderer. Voice direction is saved in the recipe, but generated narration and mixing audio into the MP4 are not connected yet. Reference-video analysis is also not connected.</p>
+              <p className="m-footnote">Fast export is 854 × 480 at 24 fps. Add a real product screenshot above to include it in your video. Export currently has no audio; keep the tab open while rendering.</p>
             </div>
           </div>
         </section>
@@ -295,7 +265,7 @@ export default function MotionStudioPage() {
             <div className="m-add"><span>{preset.duration}</span><span style={{marginLeft:"auto"}}>+ Add scene</span></div>
           </button>)}
         </div>
-        <p className="m-footnote">Motion presets feed the local MP4 renderer. Export currently produces a silent, animated launch film; generated voice audio, reference-video analysis, and replay-to-launch-film integration remain future steps.</p>
+        <p className="m-footnote">Next up: connect a saved demo-replay workflow to this launch-film editor so founders can update the demo and produce a fresh branded video.</p>
       </div>
     </main>
   );
