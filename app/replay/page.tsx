@@ -108,6 +108,16 @@ export default function DemoReplayPage() {
   const [jobMessage, setJobMessage] = useState<string>("");
   const [jobError, setJobError] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const [workerConfigured, setWorkerConfigured] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/replay", { cache: "no-store" }).then(async (response) => {
+      const data = await response.json().catch(() => ({}));
+      if (!cancelled) setWorkerConfigured(Boolean(data.configured));
+    }).catch(() => { if (!cancelled) setWorkerConfigured(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (!jobId || !["queued", "running"].includes(jobStatus)) return;
@@ -370,8 +380,8 @@ export default function DemoReplayPage() {
 
         <section className="replay-connection">
           <div className="replay-connection-icon"><LockKeyhole size={20} /></div>
-          <div className="replay-connection-copy"><span className="eyebrow">NEXT CONNECTION</span><h2>The replay service still needs to be connected.</h2><p>The Generate Demo button submits your workflow to the protected replay API. It will run only after a separate worker URL, private token, and allowed test host are configured for this preview deployment. Until then, the page shows the worker setup error and you can still download the JSON recipe.</p></div>
-          <div className="replay-connection-status"><span className="replay-status-dot" /> Worker is configured by deployment settings</div>
+          <div className="replay-connection-copy"><span className="eyebrow">NEXT CONNECTION</span><h2>The replay service still needs to be connected.</h2><p>The Generate Demo button submits your workflow to the protected replay API. {workerConfigured ? "The server reports that a worker is configured; use a separate test app and dummy data." : "A separate worker URL, private token, and allowed test host still need to be configured for this preview deployment."} Until setup is complete, the page shows the worker setup error and you can still download the JSON recipe.</p></div>
+          <div className="replay-connection-status"><span className="replay-status-dot" /> {workerConfigured ? "Worker connected" : "Worker setup required"}</div>
         </section>
 
         <footer className="replay-footer"><Link className="brand replay-brand" href="/"><span className="brand-mark"><Clapperboard size={16} /></span><span>cutlume<span className="brand-period">.</span></span></Link><span>Build the workflow once. Refresh the demo when the product changes.</span><Link className="replay-footer-link" href="/">Launch studio <ArrowUpRight size={13} /></Link></footer>
