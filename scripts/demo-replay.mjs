@@ -188,6 +188,10 @@ async function applyPresentation(step, index) {
       const label = document.createElement("div");
       label.id = "cutlume-caption";
       label.textContent = caption;
+      // Keep the caption away from spotlight targets near the bottom of the viewport.
+      const captionAtTop = Boolean(targetBox && targetBox.y > window.innerHeight * 0.5);
+      label.style.top = captionAtTop ? "clamp(34px, 7vh, 76px)" : "auto";
+      label.style.bottom = captionAtTop ? "auto" : "clamp(34px, 7vh, 76px)";
       root.appendChild(label);
     }
     if (effect === "spotlight" && targetBox) {
