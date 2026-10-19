@@ -124,9 +124,9 @@ export function LaunchFilmComposition({ scenes, mood, projectName, productImage,
                   <div style={{ marginLeft: 8, color: "rgba(255,255,255,.58)", fontSize: 8, letterSpacing: ".1em" }}>{productVideo ? "REPLAYED PRODUCT DEMO" : "YOUR REAL PRODUCT"}</div>
                 </div>
                 {productVideo ? (
-                  <Video src={productVideo} muted loop style={{ display: "block", width: "100%", height: 330, objectFit: "contain", borderRadius: 8, marginTop: 8, background: "#080910" }} />
+                  <Video src={productVideo} muted loop style={{ display: "block", width: "100%", height: 440, objectFit: "contain", borderRadius: 8, marginTop: 8, background: "#080910" }} />
                 ) : (
-                  <Img src={productImage!} alt="" style={{ display: "block", width: "100%", height: "auto", maxHeight: 420, objectFit: "contain", borderRadius: 8, marginTop: 8 }} />
+                  <Img src={productImage!} alt="" style={{ display: "block", width: "100%", height: "auto", maxHeight: 630, objectFit: "contain", borderRadius: 8, marginTop: 8 }} />
                 )}
               </div>
             ) : (
