@@ -177,9 +177,12 @@ async function applyPresentation(step, index) {
     const style = document.createElement("style");
     style.textContent = `
       @keyframes cutlumeCaptionIn { from { opacity: 0; transform: translate(-50%, 14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+      @keyframes cutlumeCaptionInRight { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
       @keyframes cutlumeSpotPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,.12), 0 0 0 3px ${accent}; } 50% { box-shadow: 0 0 0 10px rgba(255,255,255,.06), 0 0 0 3px ${accent}; } }
       #cutlume-recording-overlay::before { content: ""; position: absolute; inset: 48% 0 0; background: linear-gradient(180deg, transparent 0%, rgba(5,7,15,.22) 24%, rgba(5,7,15,.82) 100%); }
       #cutlume-caption { position: absolute; left: 50%; bottom: clamp(34px, 7vh, 76px); transform: translateX(-50%); width: max-content; max-width: min(86vw, 1040px); padding: clamp(20px, 2.8vw, 34px) clamp(24px, 4vw, 52px); border: 1px solid rgba(255,255,255,.2); border-radius: 24px; background: linear-gradient(135deg, rgba(18,20,36,.94), rgba(21,17,42,.88)); color: white; font-size: clamp(25px, 3.1vw, 42px); font-weight: 780; letter-spacing: -.045em; line-height: 1.12; text-align: center; text-wrap: balance; box-shadow: 0 24px 90px rgba(0,0,0,.48), 0 0 0 1px rgba(167,139,250,.08) inset; backdrop-filter: blur(18px); animation: cutlumeCaptionIn .38s cubic-bezier(.2,.8,.2,1) both; }
+      #cutlume-caption.at-top { left: auto; right: clamp(20px, 3vw, 42px); top: clamp(74px, 10vh, 92px); bottom: auto; transform: none; width: min(46vw, 520px); max-width: min(46vw, 520px); padding: 16px 22px; border-radius: 18px; font-size: clamp(18px, 2.2vw, 28px); text-align: right; animation: cutlumeCaptionInRight .38s cubic-bezier(.2,.8,.2,1) both; }
+      @media (max-width: 700px) { #cutlume-caption.at-top { left: 14px; right: 14px; width: auto; max-width: none; font-size: clamp(18px, 5vw, 24px); text-align: center; } }
       #cutlume-caption::before { content: "CUTLUME  /  PRODUCT DEMO"; display: block; margin-bottom: 12px; color: #c4b5fd; font-size: clamp(10px, 1vw, 13px); font-weight: 850; letter-spacing: .19em; line-height: 1.2; }
       #cutlume-spotlight { position: absolute; border: 2px solid ${accent}; border-radius: 12px; background: rgba(255,255,255,.025); animation: cutlumeSpotPulse 1.25s ease-in-out infinite; }
     `;
@@ -190,8 +193,7 @@ async function applyPresentation(step, index) {
       label.textContent = caption;
       // Keep the caption away from spotlight targets near the bottom of the viewport.
       const captionAtTop = Boolean(targetBox && targetBox.y > window.innerHeight * 0.5);
-      label.style.top = captionAtTop ? "clamp(34px, 7vh, 76px)" : "auto";
-      label.style.bottom = captionAtTop ? "auto" : "clamp(34px, 7vh, 76px)";
+      if (captionAtTop) label.classList.add("at-top");
       root.appendChild(label);
     }
     if (effect === "spotlight" && targetBox) {
