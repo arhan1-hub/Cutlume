@@ -72,8 +72,13 @@ jobs:
             if (spotlightItems.length !== expectedSpotlights) throw new Error(`Expected ${expectedSpotlights} spotlight checks, got ${spotlightItems.length}`);
             for (const item of spotlightItems) {
               if (!item.spotlightVisible) throw new Error(`Rendered spotlight not visible for step ${item.step}`);
+              if (!item.captionRect || !item.spotlightRect) throw new Error(`Caption/spotlight geometry missing for step ${item.step}`);
+              const a = item.captionRect;
+              const b = item.spotlightRect;
+              const overlaps = a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+              if (overlaps) throw new Error(`Caption overlaps spotlight target at step ${item.step}`);
             }
-            console.log("Success replay, playable MP4, WebM, branded end card, every caption and every spotlight verified.");
+            console.log("Success replay, playable MP4, WebM, branded end card, every caption and spotlight, and non-overlapping composition verified.");
           '
 
       - name: Test intentional failure still finalizes a recording and report
