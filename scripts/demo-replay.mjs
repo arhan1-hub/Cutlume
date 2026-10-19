@@ -149,6 +149,16 @@ async function applyPresentation(step, index) {
   await page.evaluate(() => document.querySelector("#cutlume-recording-overlay")?.remove());
   if (!step.caption && !step.effect) return;
 
+  const recordingStyle = config.recordingStyle || {};
+  const safeAccent = /^#[0-9a-f]{6}$/i.test(recordingStyle.accentColor || "") ? recordingStyle.accentColor : "#f47745";
+  const fontChoices = {
+    "Inter, ui-sans-serif, system-ui, sans-serif": "Inter, ui-sans-serif, system-ui, sans-serif",
+    "Arial, Helvetica, sans-serif": "Arial, Helvetica, sans-serif",
+    "Georgia, serif": "Georgia, serif"
+  };
+  const fontFamily = fontChoices[recordingStyle.captionFont] || fontChoices["Inter, ui-sans-serif, system-ui, sans-serif"];
+  const captionScale = Math.min(1.2, Math.max(0.8, Number(recordingStyle.captionScale) || 1));
+  const captionPosition = ["auto", "top", "bottom"].includes(recordingStyle.captionPosition) ? recordingStyle.captionPosition : "auto";
   let targetBox = null;
   if (step.effect === "spotlight") {
     if (hasCoordinates(step)) {
@@ -165,13 +175,13 @@ async function applyPresentation(step, index) {
     }
   }
 
-  await page.evaluate(({ caption, effect, targetBox, index, accent }) => {
+  await page.evaluate(({ caption, effect, targetBox, index, accent, fontFamily, captionScale, captionPosition }) => {
     const root = document.createElement("div");
     root.id = "cutlume-recording-overlay";
     root.setAttribute("aria-hidden", "true");
     Object.assign(root.style, {
       position: "fixed", inset: "0", zIndex: "2147483647",
-      pointerEvents: "none", fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
+      pointerEvents: "none", fontFamily
     });
 
     const style = document.createElement("style");
@@ -180,8 +190,8 @@ async function applyPresentation(step, index) {
       @keyframes cutlumeCaptionInRight { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
       @keyframes cutlumeSpotPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,.12), 0 0 0 3px ${accent}; } 50% { box-shadow: 0 0 0 10px rgba(255,255,255,.06), 0 0 0 3px ${accent}; } }
       #cutlume-recording-overlay::before { content: ""; position: absolute; inset: 48% 0 0; background: linear-gradient(180deg, transparent 0%, rgba(5,7,15,.22) 24%, rgba(5,7,15,.82) 100%); }
-      #cutlume-caption { position: absolute; left: 50%; bottom: clamp(34px, 7vh, 76px); transform: translateX(-50%); width: max-content; max-width: min(86vw, 1040px); padding: clamp(20px, 2.8vw, 34px) clamp(24px, 4vw, 52px); border: 1px solid rgba(255,255,255,.2); border-radius: 24px; background: linear-gradient(135deg, rgba(18,20,36,.94), rgba(21,17,42,.88)); color: white; font-size: clamp(25px, 3.1vw, 42px); font-weight: 780; letter-spacing: -.045em; line-height: 1.12; text-align: center; text-wrap: balance; box-shadow: 0 24px 90px rgba(0,0,0,.48), 0 0 0 1px rgba(167,139,250,.08) inset; backdrop-filter: blur(18px); animation: cutlumeCaptionIn .38s cubic-bezier(.2,.8,.2,1) both; }
-      #cutlume-caption.at-top { left: auto; right: clamp(20px, 3vw, 42px); top: clamp(74px, 10vh, 92px); bottom: auto; transform: none; width: min(46vw, 520px); max-width: min(46vw, 520px); padding: 16px 22px; border-radius: 18px; font-size: clamp(18px, 2.2vw, 28px); text-align: right; animation: cutlumeCaptionInRight .38s cubic-bezier(.2,.8,.2,1) both; }
+      #cutlume-caption { position: absolute; left: 50%; bottom: clamp(34px, 7vh, 76px); transform: translateX(-50%); width: max-content; max-width: min(86vw, 1040px); padding: clamp(20px, 2.8vw, 34px) clamp(24px, 4vw, 52px); border: 1px solid rgba(255,255,255,.2); border-radius: 24px; background: linear-gradient(135deg, rgba(18,20,36,.96), rgba(21,17,42,.92)); color: white; font-size: calc(clamp(25px, 3.1vw, 42px) * ${captionScale}); font-weight: 780; letter-spacing: -.045em; line-height: 1.12; text-align: center; text-wrap: balance; box-shadow: 0 24px 90px rgba(0,0,0,.48), 0 0 0 1px ${accent}20 inset; backdrop-filter: blur(18px); animation: cutlumeCaptionIn .38s cubic-bezier(.2,.8,.2,1) both; }
+      #cutlume-caption.at-top { left: auto; right: clamp(20px, 3vw, 42px); top: clamp(74px, 10vh, 92px); bottom: auto; transform: none; width: min(46vw, 520px); max-width: min(46vw, 520px); padding: 16px 22px; border-radius: 18px; font-size: calc(clamp(18px, 2.2vw, 28px) * ${captionScale}); text-align: right; animation: cutlumeCaptionInRight .38s cubic-bezier(.2,.8,.2,1) both; }
       @media (max-width: 700px) { #cutlume-caption.at-top { left: 14px; right: 14px; width: auto; max-width: none; font-size: clamp(18px, 5vw, 24px); text-align: center; } }
       #cutlume-caption::before { content: "CUTLUME  /  PRODUCT DEMO"; display: block; margin-bottom: 12px; color: #c4b5fd; font-size: clamp(10px, 1vw, 13px); font-weight: 850; letter-spacing: .19em; line-height: 1.2; }
       #cutlume-spotlight { position: absolute; border: 2px solid ${accent}; border-radius: 12px; background: rgba(255,255,255,.025); animation: cutlumeSpotPulse 1.25s ease-in-out infinite; }
@@ -192,7 +202,7 @@ async function applyPresentation(step, index) {
       label.id = "cutlume-caption";
       label.textContent = caption;
       // Keep the caption away from spotlight targets near the bottom of the viewport.
-      const captionAtTop = Boolean(targetBox && targetBox.y > window.innerHeight * 0.5);
+      const captionAtTop = captionPosition === "top" || (captionPosition === "auto" && Boolean(targetBox && targetBox.y > window.innerHeight * 0.5));
       if (captionAtTop) label.classList.add("at-top");
       root.appendChild(label);
     }
@@ -213,7 +223,10 @@ async function applyPresentation(step, index) {
     effect: step.effect || "",
     targetBox,
     index,
-    accent: config.recordingStyle?.accentColor || "#8b5cf6"
+    accent: safeAccent,
+    fontFamily,
+    captionScale,
+    captionPosition
   });
 }
 
@@ -222,15 +235,24 @@ async function showEndCard() {
   if (!endCard?.enabled || failure || !page) return null;
 
   const durationMs = Math.min(Math.max(Number(endCard.durationMs) || 3500, 1800), 10000);
+  const recordingStyle = config.recordingStyle || {};
+  const safeAccent = /^#[0-9a-f]{6}$/i.test(recordingStyle.accentColor || "") ? recordingStyle.accentColor : "#f47745";
+  const fontChoices = {
+    "Inter, ui-sans-serif, system-ui, sans-serif": "Inter, ui-sans-serif, system-ui, sans-serif",
+    "Arial, Helvetica, sans-serif": "Arial, Helvetica, sans-serif",
+    "Georgia, serif": "Georgia, serif"
+  };
+  const fontFamily = fontChoices[recordingStyle.captionFont] || fontChoices["Inter, ui-sans-serif, system-ui, sans-serif"];
   const copy = {
     brand: endCard.brand || "CUTLUME",
     headline: endCard.headline || "Your product evolves. Your demo keeps up.",
     subheadline: endCard.subheadline || "Replay your workflow. Capture a fresh demo. Share it.",
     cta: endCard.cta || "Make your next demo with Cutlume",
-    accent: config.recordingStyle?.accentColor || "#a78bfa"
+    accent: safeAccent,
+    fontFamily
   };
 
-  await page.evaluate(({ brand, headline, subheadline, cta, accent }) => {
+  await page.evaluate(({ brand, headline, subheadline, cta, accent, fontFamily }) => {
     document.querySelector("#cutlume-recording-overlay")?.remove();
     const root = document.createElement("div");
     root.id = "cutlume-end-card";
@@ -238,8 +260,8 @@ async function showEndCard() {
     Object.assign(root.style, {
       position: "fixed", inset: "0", zIndex: "2147483647", overflow: "hidden",
       display: "grid", placeItems: "center", padding: "36px",
-      pointerEvents: "none", fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
-      color: "#fff", background: "radial-gradient(ellipse at 18% 10%, rgba(124,92,246,.38), transparent 45%), radial-gradient(ellipse at 85% 90%, rgba(34,211,238,.2), transparent 38%), linear-gradient(135deg,#090b14 0%,#121327 52%,#090d17 100%)"
+      pointerEvents: "none", fontFamily,
+      color: "#fff", background: `radial-gradient(ellipse at 18% 10%, ${accent}55, transparent 45%), radial-gradient(ellipse at 85% 90%, rgba(255,255,255,.10), transparent 38%), linear-gradient(135deg,#090b14 0%,#121327 52%,#090d17 100%)`
     });
     const style = document.createElement("style");
     style.textContent = `
@@ -248,12 +270,12 @@ async function showEndCard() {
       #cutlume-end-card .glow { position:absolute; width:min(70vw,760px); aspect-ratio:1; border-radius:50%; background:radial-gradient(circle, ${accent}30 0%, transparent 68%); filter:blur(12px); animation:cutlumeEndGlow 5s ease-in-out infinite; }
       #cutlume-end-card .content { position:relative; width:min(100%,920px); text-align:center; animation:cutlumeEndIn .7s cubic-bezier(.2,.8,.2,1) both; }
       #cutlume-end-card .brand { display:inline-flex; align-items:center; gap:12px; margin-bottom:clamp(28px,5vh,52px); color:#f8f7ff; font-size:clamp(15px,1.8vw,21px); font-weight:900; letter-spacing:.16em; }
-      #cutlume-end-card .logo { display:grid; place-items:center; width:clamp(42px,5vw,58px); height:clamp(42px,5vw,58px); border-radius:18px; color:#10111b; font-size:clamp(22px,2.8vw,31px); letter-spacing:-.08em; background:linear-gradient(135deg,#c4b5fd,#67e8f9); box-shadow:0 8px 38px ${accent}45; }
-      #cutlume-end-card .eyebrow { color:#c4b5fd; font-size:clamp(10px,1.1vw,13px); font-weight:850; letter-spacing:.22em; text-transform:uppercase; margin-bottom:20px; }
+      #cutlume-end-card .logo { display:grid; place-items:center; width:clamp(42px,5vw,58px); height:clamp(42px,5vw,58px); border-radius:18px; color:#10111b; font-size:clamp(22px,2.8vw,31px); letter-spacing:-.08em; background:linear-gradient(135deg,${accent},#fff1e8); box-shadow:0 8px 38px ${accent}45; }
+      #cutlume-end-card .eyebrow { color:${accent}; font-size:clamp(10px,1.1vw,13px); font-weight:850; letter-spacing:.22em; text-transform:uppercase; margin-bottom:20px; }
       #cutlume-end-card h1 { margin:0 auto; max-width:850px; font-size:clamp(34px,6vw,76px); line-height:.99; letter-spacing:-.065em; font-weight:850; text-wrap:balance; }
-      #cutlume-end-card .gradient { color:transparent; background:linear-gradient(100deg,#c4b5fd 10%,#fff 48%,#67e8f9 90%); -webkit-background-clip:text; background-clip:text; }
+      #cutlume-end-card .gradient { color:transparent; background:linear-gradient(100deg,${accent} 10%,#fff 75%); -webkit-background-clip:text; background-clip:text; }
       #cutlume-end-card .sub { max-width:650px; margin:26px auto 0; color:#b8bfd4; font-size:clamp(15px,1.8vw,21px); line-height:1.5; text-wrap:balance; }
-      #cutlume-end-card .cta { display:inline-flex; align-items:center; gap:12px; margin-top:clamp(28px,5vh,48px); padding:16px 24px; border:1px solid rgba(255,255,255,.24); border-radius:15px; color:#10111b; background:linear-gradient(110deg,#c4b5fd,#67e8f9); font-size:clamp(13px,1.35vw,16px); font-weight:850; box-shadow:0 12px 42px ${accent}35; }
+      #cutlume-end-card .cta { display:inline-flex; align-items:center; gap:12px; margin-top:clamp(28px,5vh,48px); padding:16px 24px; border:1px solid rgba(255,255,255,.24); border-radius:15px; color:#10111b; background:linear-gradient(110deg,${accent},#fff1e8); font-size:clamp(13px,1.35vw,16px); font-weight:850; box-shadow:0 12px 42px ${accent}35; }
       #cutlume-end-card .foot { position:absolute; left:20px; right:20px; bottom:20px; display:flex; justify-content:space-between; gap:16px; color:#727b99; font-size:clamp(9px,.9vw,11px); letter-spacing:.12em; text-transform:uppercase; }
       @media(max-width:600px) { #cutlume-end-card .foot { justify-content:center; } #cutlume-end-card .foot span:last-child { display:none; } }
     `;
