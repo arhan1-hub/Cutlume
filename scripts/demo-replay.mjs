@@ -308,6 +308,57 @@ async function runStep(step, index) {
   console.log(`[${index + 1}/${config.steps.length}] ${label}`);
   await applyPresentation(step, index);
 
+  if (config.capturePresentationScreenshots && (step.caption || step.effect)) {
+    const screenshotPath = path.join(outputDir, `${safeName}-${stamp}-step-${String(index + 1).padStart(2, "0")}-presentation.png`);
+    try {
+      // Let the caption entrance animation finish before inspecting or capturing it.
+      await page.waitForTimeout(500);
+      const overlayState = await page.evaluate(() => {
+        const caption = document.querySelector("#cutlume-caption");
+        const spotlight = document.querySelector("#cutlume-spotlight");
+        const visible = (element) => {
+          if (!element) return false;
+          const style = getComputedStyle(element);
+          const rect = element.getBoundingClientRect();
+          return style.display !== "none" && style.visibility !== "hidden" &&
+            Number(style.opacity) >= 0.95 && rect.width > 0 && rect.height > 0 &&
+            rect.bottom > 0 && rect.right > 0 &&
+            rect.top < window.innerHeight && rect.left < window.innerWidth;
+        };
+        return {
+          caption: caption?.textContent || null,
+          captionVisible: visible(caption),
+          captionOpacity: caption ? getComputedStyle(caption).opacity : null,
+          spotlightVisible: visible(spotlight),
+          spotlightRect: spotlight ? (() => {
+            const rect = spotlight.getBoundingClientRect();
+            return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+          })() : null,
+        };
+      });
+      await page.screenshot({ path: screenshotPath, fullPage: false });
+      presentationScreenshots.push({
+        step: index + 1,
+        label,
+        path: screenshotPath,
+        captionVisible: overlayState.captionVisible,
+        captionText: overlayState.caption,
+        captionOpacity: overlayState.captionOpacity,
+        spotlightVisible: overlayState.spotlightVisible,
+        spotlightRect: overlayState.spotlightRect,
+      });
+    } catch (error) {
+      presentationScreenshots.push({
+        step: index + 1,
+        label,
+        path: null,
+        error: error instanceof Error ? error.message : String(error),
+        captionVisible: false,
+        spotlightVisible: false,
+      });
+    }
+  }
+
   switch (step.action) {
     case "goto":
       await page.goto(step.url || baseUrl, { waitUntil: step.waitUntil || "domcontentloaded", timeout: step.timeout || 30000 });
@@ -373,33 +424,6 @@ async function runStep(step, index) {
       throw new Error(`Unknown action "${step.action}". Supported: goto, click/clickAt, fill, type/typeAt, upload, press, wait, waitForSelector, waitForText, waitForStableText, scroll, screenshot.`);
   }
   if (step.pauseAfter) await page.waitForTimeout(Math.min(Number(step.pauseAfter), 15000));
-  if (config.capturePresentationScreenshots && (step.caption || step.effect)) {
-    const screenshotPath = path.join(outputDir, `${safeName}-${stamp}-step-${String(index + 1).padStart(2, "0")}-presentation.png`);
-    try {
-      const overlayState = await page.evaluate(() => ({
-        caption: document.querySelector("#cutlume-caption")?.textContent || null,
-        spotlightVisible: Boolean(document.querySelector("#cutlume-spotlight")),
-      }));
-      await page.screenshot({ path: screenshotPath, fullPage: false });
-      presentationScreenshots.push({
-        step: index + 1,
-        label,
-        path: screenshotPath,
-        captionVisible: Boolean(overlayState.caption),
-        captionText: overlayState.caption,
-        spotlightVisible: overlayState.spotlightVisible,
-      });
-    } catch (error) {
-      presentationScreenshots.push({
-        step: index + 1,
-        label,
-        path: null,
-        error: error instanceof Error ? error.message : String(error),
-        captionVisible: false,
-        spotlightVisible: false,
-      });
-    }
-  }
   const presentationHoldMs = Number(step.presentationMs ?? (step.caption || step.effect ? 1600 : 0));
   if (presentationHoldMs > 0) await page.waitForTimeout(Math.min(Math.max(presentationHoldMs, 0), 10000));
   await page.evaluate(() => document.querySelector("#cutlume-recording-overlay")?.remove());
