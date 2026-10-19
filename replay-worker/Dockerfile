@@ -6,7 +6,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg ca-certificates fonts-liberation && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json* ./
-RUN npm install --omit=dev && npx playwright install --with-deps chromium
+RUN npm install && npx playwright install --with-deps chromium
 COPY . .
 RUN mkdir -p /data/jobs && chown -R node:node /data
 USER node
