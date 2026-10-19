@@ -5,10 +5,11 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg ca-certificates fonts-liberation && rm -rf /var/lib/apt/lists/*
-COPY package.json ./
+COPY replay-worker/package.json ./package.json
 RUN npm install && npx playwright install --with-deps chromium
-COPY . .
-RUN mkdir -p /data/jobs && chown -R node:node /data
+COPY replay-worker/ ./replay-worker/
+COPY scripts/ ./scripts/
+RUN mkdir -p /data/jobs && chown -R node:node /data /app
 USER node
 EXPOSE 8787
-CMD ["npm", "start"]
+CMD ["node", "replay-worker/server.mjs"]
