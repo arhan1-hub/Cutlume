@@ -157,7 +157,7 @@ export default function DemoReplayPage() {
     baseUrl: baseUrl.trim(),
     outputDir: "recordings",
     viewport: { width: 1280, height: 800 },
-    recordingStyle: { accentColor: "#a78bfa" },
+    recordingStyle: { accentColor: "#f47745" },
     steps: steps.map((step) => {
       const common = {
         action: step.action,
@@ -327,7 +327,7 @@ export default function DemoReplayPage() {
 
               <div className="replay-config-divider" />
               <div className="replay-section-title"><span className="replay-section-icon"><Sparkles size={17} /></span><div><strong>Recording style</strong><small>Applied to the exported workflow</small></div></div>
-              <div className="replay-style-row"><span><i className="replay-style-swatch" /> Violet + cyan accent</span><span>16:10 · HD</span></div>
+              <div className="replay-style-row"><span><i className="replay-style-swatch" /> Warm orange accent</span><span>16:10 · HD</span></div>
               <div className="replay-style-row"><span>Step captions</span><span className="replay-style-enabled"><Check size={12} /> On</span></div>
               <div className="replay-style-row"><span>Spotlight effects</span><span className="replay-style-enabled"><Check size={12} /> Per step</span></div>
               <div className="replay-style-row"><span>Branded end card</span><span className="replay-style-enabled"><Check size={12} /> 3.5 sec</span></div>
