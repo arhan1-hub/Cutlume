@@ -6,6 +6,8 @@ import {
   ArrowLeft,
   ArrowUpRight,
   Check,
+  ChevronDown,
+  ChevronUp,
   Clapperboard,
   Download,
   FileJson,
@@ -111,6 +113,12 @@ export default function DemoReplayPage() {
   const [jobError, setJobError] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [workerConfigured, setWorkerConfigured] = useState(false);
+  const [accentColor, setAccentColor] = useState("#f47745");
+  const [captionFont, setCaptionFont] = useState("Inter, ui-sans-serif, system-ui, sans-serif");
+  const [captionScale, setCaptionScale] = useState(100);
+  const [captionPosition, setCaptionPosition] = useState("auto");
+  const [brandName, setBrandName] = useState("CUTLUME");
+  const [endHeadline, setEndHeadline] = useState("Your product evolves. Your demo keeps up.");
 
   useEffect(() => {
     let cancelled = false;
@@ -157,7 +165,7 @@ export default function DemoReplayPage() {
     baseUrl: baseUrl.trim(),
     outputDir: "recordings",
     viewport: { width: 1280, height: 800 },
-    recordingStyle: { accentColor: "#f47745" },
+    recordingStyle: { accentColor, captionFont, captionScale: captionScale / 100, captionPosition },
     steps: steps.map((step) => {
       const common = {
         action: step.action,
@@ -188,12 +196,12 @@ export default function DemoReplayPage() {
     endCard: {
       enabled: true,
       durationMs: 3500,
-      brand: "CUTLUME",
-      headline: "Your product evolves. Your demo keeps up.",
+      brand: brandName.trim() || "YOUR BRAND",
+      headline: endHeadline.trim() || "Your product evolves. Your demo keeps up.",
       subheadline: "Replay your workflow. Capture a fresh demo. Share it.",
       cta: "Make your next demo with Cutlume",
     },
-  }), [projectName, baseUrl, steps]);
+  }), [projectName, baseUrl, steps, accentColor, captionFont, captionScale, captionPosition, brandName, endHeadline]);
 
   function updateStep(id: string, patch: Partial<ReplayStep>) {
     setDownloaded(false);
@@ -216,6 +224,18 @@ export default function DemoReplayPage() {
   function removeStep(id: string) {
     setDownloaded(false);
     setSteps((current) => current.filter((step) => step.id !== id));
+  }
+
+  function moveStep(id: string, direction: -1 | 1) {
+    setDownloaded(false);
+    setSteps((current) => {
+      const index = current.findIndex((step) => step.id === id);
+      const target = index + direction;
+      if (index < 0 || target < 0 || target >= current.length) return current;
+      const next = [...current];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
   }
 
   async function startReplay() {
@@ -327,10 +347,39 @@ export default function DemoReplayPage() {
 
               <div className="replay-config-divider" />
               <div className="replay-section-title"><span className="replay-section-icon"><Sparkles size={17} /></span><div><strong>Recording style</strong><small>Applied to the exported workflow</small></div></div>
-              <div className="replay-style-row"><span><i className="replay-style-swatch" /> Warm orange accent</span><span>16:10 · HD</span></div>
-              <div className="replay-style-row"><span>Step captions</span><span className="replay-style-enabled"><Check size={12} /> On</span></div>
-              <div className="replay-style-row"><span>Spotlight effects</span><span className="replay-style-enabled"><Check size={12} /> Per step</span></div>
-              <div className="replay-style-row"><span>Branded end card</span><span className="replay-style-enabled"><Check size={12} /> 3.5 sec</span></div>
+              <div className="replay-style-controls">
+                <label className="field-label" htmlFor="replay-accent">ACCENT COLOUR</label>
+                <div className="replay-colour-options" role="group" aria-label="Recording accent colour">
+                  {[{name:"Warm orange",value:"#f47745"},{name:"Electric blue",value:"#5577ee"},{name:"Violet",value:"#8964df"},{name:"Emerald",value:"#23866d"}].map((colour) => (
+                    <button key={colour.value} type="button" className={accentColor === colour.value ? "replay-colour-swatch is-selected" : "replay-colour-swatch"} style={{backgroundColor:colour.value}} onClick={() => setAccentColor(colour.value)} aria-label={colour.name} aria-pressed={accentColor === colour.value} title={colour.name}><span>{accentColor === colour.value ? <Check size={13}/> : null}</span></button>
+                  ))}
+                </div>
+                <label className="field-label" htmlFor="replay-caption-font">CAPTION TYPEFACE</label>
+                <select id="replay-caption-font" className="text-input replay-select" value={captionFont} onChange={(event) => setCaptionFont(event.target.value)}>
+                  <option value="Inter, ui-sans-serif, system-ui, sans-serif">Modern sans</option>
+                  <option value="Arial, Helvetica, sans-serif">Clean classic</option>
+                  <option value="Georgia, serif">Editorial serif</option>
+                </select>
+                <div className="replay-slider-heading"><label className="field-label" htmlFor="replay-caption-size">CAPTION SIZE</label><span>{captionScale}%</span></div>
+                <input id="replay-caption-size" className="replay-range" type="range" min="80" max="120" step="5" value={captionScale} onChange={(event) => setCaptionScale(Number(event.target.value))} />
+                <label className="field-label" htmlFor="replay-caption-position">CAPTION PLACEMENT</label>
+                <select id="replay-caption-position" className="text-input replay-select" value={captionPosition} onChange={(event) => setCaptionPosition(event.target.value)}>
+                  <option value="auto">Smart placement (avoid highlights)</option>
+                  <option value="bottom">Bottom</option>
+                  <option value="top">Top</option>
+                </select>
+                <div className="replay-live-preview" aria-live="polite">
+                  <span>LIVE STYLE PREVIEW</span>
+                  <div className="replay-preview-caption" style={{borderColor:accentColor, fontFamily:captionFont, fontSize:`clamp(12px, 1.2vw, 15px) ${captionScale / 100}`}}>Your demo, refreshed.</div>
+                  <small>Changes are included in the exported workflow.</small>
+                </div>
+                <label className="field-label" htmlFor="replay-brand-name">END CARD BRAND</label>
+                <input id="replay-brand-name" className="text-input" value={brandName} maxLength={32} onChange={(event) => setBrandName(event.target.value)} placeholder="YOUR BRAND" />
+                <label className="field-label" htmlFor="replay-end-headline">END CARD HEADLINE</label>
+                <input id="replay-end-headline" className="text-input" value={endHeadline} maxLength={100} onChange={(event) => setEndHeadline(event.target.value)} placeholder="Your product evolves. Your demo keeps up." />
+                <div className="replay-style-row"><span>Spotlight effects</span><span className="replay-style-enabled"><Check size={12} /> Per step</span></div>
+                <div className="replay-style-row"><span>Branded end card</span><span className="replay-style-enabled"><Check size={12} /> 3.5 sec</span></div>
+              </div>
 
               <div className="replay-download-box">
                 <FileJson size={21} />
@@ -356,7 +405,11 @@ export default function DemoReplayPage() {
                     <div className="replay-step-card-top">
                       <span className="replay-step-number">{String(index + 1).padStart(2, "0")}</span>
                       <div className="replay-step-title"><strong>{step.label || "Untitled step"}</strong><span>{actionLabels[step.action]}</span></div>
-                      <button className="replay-icon-button" onClick={() => removeStep(step.id)} aria-label={`Remove step ${index + 1}`} disabled={steps.length === 1}><Trash2 size={15} /></button>
+                      <div className="replay-step-actions">
+                        <button className="replay-icon-button" onClick={() => moveStep(step.id, -1)} aria-label={`Move step ${index + 1} up`} disabled={index === 0}><ChevronUp size={15} /></button>
+                        <button className="replay-icon-button" onClick={() => moveStep(step.id, 1)} aria-label={`Move step ${index + 1} down`} disabled={index === steps.length - 1}><ChevronDown size={15} /></button>
+                        <button className="replay-icon-button" onClick={() => removeStep(step.id)} aria-label={`Remove step ${index + 1}`} disabled={steps.length === 1}><Trash2 size={15} /></button>
+                      </div>
                     </div>
                     <label className="field-label" htmlFor={`action-${step.id}`}>ACTION</label>
                     <select id={`action-${step.id}`} className="text-input replay-select" value={step.action} onChange={(event) => updateStep(step.id, { action: event.target.value as ReplayAction })}>
