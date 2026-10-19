@@ -19,7 +19,7 @@ The worker must independently validate all input; never trust only the Next.js p
 - Re-validate target host allowlisting after DNS resolution; reject loopback, private, link-local, multicast, and cloud metadata IP ranges to prevent DNS-rebinding/SSRF.
 - Enforce a job queue, concurrency limits, a strict wall-clock timeout, memory limits, and a maximum of 30 steps.
 - Run browser jobs in isolated temporary directories/containers; never expose the worker filesystem.
-- Restrict file uploads to packaged test fixtures, not arbitrary paths supplied by clients.
+- Restrict file uploads to the exact packaged `./fixtures/demo-image.svg` test fixture; reject arbitrary paths and coordinate-based upload triggers.
 - Return only job status, sanitized logs, and an expiring video URL or a video served from authenticated storage. Never return secrets or full environment variables.
 - Expire and delete recordings and screenshots after a short retention period.
 - Use only dummy accounts, a test database, and simulated payments.
