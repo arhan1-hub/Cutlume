@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { Easing, Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 
 export type LaunchScene = {
   id: string;
@@ -121,7 +121,7 @@ export function LaunchFilmComposition({ scenes, mood, projectName, productImage 
                   <i style={{ width: 6, height: 6, borderRadius: 9, background: "#7ce0b5" }} />
                   <div style={{ marginLeft: 8, color: "rgba(255,255,255,.58)", fontSize: 8, letterSpacing: ".1em" }}>YOUR REAL PRODUCT</div>
                 </div>
-                <img src={productImage} alt="" style={{ display: "block", width: "100%", height: "auto", maxHeight: 420, objectFit: "contain", borderRadius: 8, marginTop: 8 }} />
+                <Img src={productImage} alt="" style={{ display: "block", width: "100%", height: "auto", maxHeight: 420, objectFit: "contain", borderRadius: 8, marginTop: 8 }} />
               </div>
             ) : (
             <div style={{ ...glass, borderRadius: 17, padding: 12, transform: `scale(${interpolate(entrance, [0, 1], [.94, 1])})` }}>
