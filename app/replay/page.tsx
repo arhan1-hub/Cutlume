@@ -295,6 +295,7 @@ export default function DemoReplayPage() {
         </Link>
         <nav className="top-nav replay-nav" aria-label="Main navigation">
           <Link href="/">Launch studio</Link>
+          <Link href="/motion">Motion library</Link>
           <span className="replay-nav-active">Demo replay</span>
         </nav>
         <div className="top-actions">
