@@ -27,6 +27,7 @@ type ReplayAction =
   | "waitForText"
   | "waitForStableText"
   | "wait"
+  | "upload"
   | "screenshot";
 
 type ReplayStep = {
@@ -95,6 +96,7 @@ const actionLabels: Record<ReplayAction, string> = {
   waitForText: "Wait for text",
   waitForStableText: "Wait for stable text",
   wait: "Pause",
+  upload: "Attach sample image",
   screenshot: "Take screenshot",
 };
 
@@ -173,6 +175,9 @@ export default function DemoReplayPage() {
         caption: step.caption,
         ...(step.effect ? { effect: "spotlight" } : {}),
       };
+      if (step.action === "upload") {
+        return { ...common, file: "./fixtures/demo-image.svg", trigger: { selector: step.selector }, presentationMs: 900 };
+      }
       if (step.action === "fill") {
         return { ...common, selector: step.selector, value: step.value, presentationMs: 1500 };
       }
@@ -418,8 +423,9 @@ export default function DemoReplayPage() {
                     <label className="field-label" htmlFor={`label-${step.id}`}>STEP LABEL</label>
                     <input id={`label-${step.id}`} className="text-input" value={step.label} onChange={(event) => updateStep(step.id, { label: event.target.value })} placeholder="What is happening?" />
                     {step.action !== "wait" && step.action !== "screenshot" && step.action !== "waitForText" && <>
-                      <label className="field-label" htmlFor={`selector-${step.id}`}>{step.action === "waitForStableText" ? "TEXT TARGET SELECTOR" : "CSS SELECTOR"}</label>
-                      <input id={`selector-${step.id}`} className="text-input replay-code-input" value={step.selector} onChange={(event) => updateStep(step.id, { selector: event.target.value })} placeholder="e.g. button[type='submit'] or [data-testid='send']" />
+                      <label className="field-label" htmlFor={`selector-${step.id}`}>{step.action === "waitForStableText" ? "TEXT TARGET SELECTOR" : step.action === "upload" ? "ATTACH BUTTON SELECTOR" : "CSS SELECTOR"}</label>
+                      <input id={`selector-${step.id}`} className="text-input replay-code-input" value={step.selector} onChange={(event) => updateStep(step.id, { selector: event.target.value })} placeholder={step.action === "upload" ? "e.g. [data-testid='attach-image']" : "e.g. button[type='submit'] or [data-testid='send']"} />
+                      {step.action === "upload" && <p className="replay-field-hint">Uses Cutlume’s bundled sample image only. Arbitrary file uploads are disabled in the hosted prototype.</p>}
                     </>}
                     {(step.action === "fill" || step.action === "press" || step.action === "waitForText" || step.action === "waitForStableText" || step.action === "wait") && <>
                       <label className="field-label" htmlFor={`value-${step.id}`}>{step.action === "wait" ? "PAUSE LENGTH (MS)" : step.action === "fill" ? "TEXT TO TYPE" : step.action === "press" ? "KEY TO PRESS" : "EXPECTED TEXT (OPTIONAL)"}</label>
