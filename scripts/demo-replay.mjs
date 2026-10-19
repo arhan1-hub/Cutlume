@@ -337,6 +337,10 @@ async function runStep(step, index) {
           caption: caption?.textContent || null,
           captionVisible: visible(caption),
           captionOpacity: caption ? getComputedStyle(caption).opacity : null,
+          captionRect: caption ? (() => {
+            const rect = caption.getBoundingClientRect();
+            return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+          })() : null,
           spotlightVisible: visible(spotlight),
           spotlightRect: spotlight ? (() => {
             const rect = spotlight.getBoundingClientRect();
@@ -353,6 +357,7 @@ async function runStep(step, index) {
         captionVisible: overlayState.captionVisible,
         captionText: overlayState.caption,
         captionOpacity: overlayState.captionOpacity,
+        captionRect: overlayState.captionRect,
         spotlightVisible: overlayState.spotlightVisible,
         spotlightRect: overlayState.spotlightRect,
       });
