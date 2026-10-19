@@ -370,7 +370,7 @@ export default function DemoReplayPage() {
                 </select>
                 <div className="replay-live-preview" aria-live="polite">
                   <span>LIVE STYLE PREVIEW</span>
-                  <div className="replay-preview-caption" style={{borderColor:accentColor, fontFamily:captionFont, fontSize:`clamp(12px, 1.2vw, 15px) ${captionScale / 100}`}}>Your demo, refreshed.</div>
+                  <div className="replay-preview-caption" style={{borderColor:accentColor, fontFamily:captionFont, fontSize:`clamp(${12 * captionScale / 100}px, ${1.2 * captionScale / 100}vw, ${15 * captionScale / 100}px)`}}>Your demo, refreshed.</div>
                   <small>Changes are included in the exported workflow.</small>
                 </div>
                 <label className="field-label" htmlFor="replay-brand-name">END CARD BRAND</label>
