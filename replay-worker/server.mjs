@@ -99,7 +99,7 @@ async function execute(job) {
   const config = { ...job.workflow, baseUrl: job.target, outputDir: dir, name: "cutlume-" + job.id };
   await fs.writeFile(configPath, JSON.stringify(config), { mode: 0o600 });
   const proc = spawn(process.execPath, [path.join(ROOT, "scripts", "demo-replay.mjs"), "--config", configPath, "--headless", "--slow-mo", "0"], {
-    cwd: ROOT, env: { ...process.env, CUTLUME_REPLAY_JOB_ID: job.id }, stdio: ["ignore", "pipe", "pipe"],
+    cwd: ROOT, env: { ...process.env, CUTLUME_REPLAY_JOB_ID: job.id, CUTLUME_REPLAY_ENFORCE_HOST_ALLOWLIST: "1" }, stdio: ["ignore", "pipe", "pipe"],
   });
   let logs = "";
   const append = chunk => { logs = (logs + chunk.toString()).slice(-12000); };
