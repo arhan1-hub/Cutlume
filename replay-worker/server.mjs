@@ -17,6 +17,7 @@ const MAX_BYTES = 64 * 1024;
 const MAX_STEPS = 30;
 const MAX_JOBS = 3;
 const TIMEOUT_MS = 180_000;
+const RETENTION_MS = 6 * 60 * 60 * 1000;
 const ACTIONS = new Set(["goto", "click", "clickAt", "fill", "type", "typeAt", "press", "upload", "wait", "waitForSelector", "waitForText", "waitForStableText", "scroll", "screenshot"]);
 const jobs = new Map();
 const queue = [];
@@ -135,6 +136,17 @@ async function execute(job) {
   active = false;
   if (queue.length) void execute(queue.shift());
 }
+async function cleanupExpired() {
+  const now = Date.now();
+  for (const [id, job] of jobs) {
+    const created = Date.parse(job.createdAt || "");
+    if (Number.isFinite(created) && now - created > RETENTION_MS && !["queued", "running"].includes(job.status)) {
+      jobs.delete(id);
+      await fs.rm(path.join(DATA, id), { recursive: true, force: true }).catch(() => {});
+    }
+  }
+}
+
 async function handle(req, res) {
   const url = new URL(req.url || "/", "http://worker.local");
   if (url.pathname === "/healthz" && req.method === "GET") return reply(res, 200, { ok: true, configured: Boolean(TOKEN && HOSTS.length) });
@@ -175,6 +187,7 @@ async function handle(req, res) {
   return reply(res, 404, { error: "Not found." });
 }
 await fs.mkdir(DATA, { recursive: true });
+setInterval(() => { void cleanupExpired(); }, 15 * 60 * 1000).unref();
 http.createServer((req, res) => { void handle(req, res).catch(() => { if (!res.headersSent) reply(res, 500, { error: "Internal worker error." }); else res.destroy(); }); }).listen(PORT, "0.0.0.0", () => {
   console.log("Cutlume replay worker listening on port " + PORT);
   if (!TOKEN || !HOSTS.length) console.warn("Worker is not configured; set CUTLUME_REPLAY_TOKEN and CUTLUME_REPLAY_ALLOWED_HOSTS.");
