@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -270,6 +270,69 @@ export default function DemoReplayPage() {
     }
   }
 
+  function importWorkflow(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result || "")) as Record<string, unknown>;
+        const allowedActions = new Set<ReplayAction>([
+          "waitForSelector", "click", "fill", "press", "waitForText",
+          "waitForStableText", "wait", "upload", "screenshot",
+        ]);
+        if (typeof parsed.baseUrl !== "string" || !Array.isArray(parsed.steps) || parsed.steps.length === 0) {
+          throw new Error("This file doesn’t look like a Cutlume workflow. Choose a demo-flow.json exported from Cutlume.");
+        }
+        const importedSteps: ReplayStep[] = parsed.steps.map((rawStep, index) => {
+          if (!rawStep || typeof rawStep !== "object") throw new Error("One workflow step is invalid.");
+          const step = rawStep as Record<string, unknown>;
+          if (typeof step.action !== "string" || !allowedActions.has(step.action as ReplayAction)) {
+            throw new Error(`Step ${index + 1} uses an unsupported action.`);
+          }
+          return {
+            id: makeId(),
+            action: step.action as ReplayAction,
+            label: typeof step.label === "string" ? step.label : `Step ${index + 1}`,
+            selector: typeof step.selector === "string" ? step.selector : "",
+            value: typeof step.value === "string" ? step.value : typeof step.key === "string" ? step.key : typeof step.ms === "number" ? String(step.ms) : typeof step.text === "string" ? step.text : "",
+            caption: typeof step.caption === "string" ? step.caption : "",
+            effect: step.effect === "spotlight" || step.effect === true,
+          };
+        });
+        const style = parsed.recordingStyle && typeof parsed.recordingStyle === "object"
+          ? parsed.recordingStyle as Record<string, unknown>
+          : {};
+        const endCard = parsed.endCard && typeof parsed.endCard === "object"
+          ? parsed.endCard as Record<string, unknown>
+          : {};
+        setProjectName(typeof parsed.name === "string" ? parsed.name.replace(/-/g, " ") : "Imported product demo");
+        setBaseUrl(parsed.baseUrl);
+        setSteps(importedSteps);
+        if (typeof style.accentColor === "string" && /^#[0-9a-fA-F]{6}$/.test(style.accentColor)) setAccentColor(style.accentColor);
+        if (typeof style.captionFont === "string" && ["Inter, ui-sans-serif, system-ui, sans-serif", "Arial, Helvetica, sans-serif", "Georgia, serif"].includes(style.captionFont)) setCaptionFont(style.captionFont);
+        if (typeof style.captionScale === "number") setCaptionScale(Math.max(80, Math.min(120, Math.round(style.captionScale * 100))));
+        if (typeof style.captionPosition === "string" && ["auto", "top", "bottom"].includes(style.captionPosition)) setCaptionPosition(style.captionPosition);
+        if (typeof endCard.brand === "string") setBrandName(endCard.brand);
+        if (typeof endCard.headline === "string") setEndHeadline(endCard.headline);
+        setDownloaded(false);
+        setJobId(null);
+        setJobStatus("");
+        setJobMessage("");
+        setJobError("");
+      } catch (error) {
+        setJobError(error instanceof Error ? error.message : "Could not import that workflow file.");
+        setJobStatus("failed");
+      }
+    };
+    reader.onerror = () => {
+      setJobError("Could not read that file. Try exporting a fresh demo-flow.json from Cutlume.");
+      setJobStatus("failed");
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  }
+
   function downloadWorkflow() {
     if (!validUrl || steps.length === 0) return;
     const blob = new Blob([JSON.stringify(config, null, 2) + "\n"], { type: "application/json" });
@@ -389,8 +452,10 @@ export default function DemoReplayPage() {
 
               <div className="replay-download-box">
                 <FileJson size={21} />
-                <div><strong>Workflow recipe</strong><span>Download editable JSON to use with the local replay runner.</span></div>
+                <div><strong>Reusable workflow recipe</strong><span>Save the JSON in your repo, then import it here next time to refresh the demo.</span></div>
               </div>
+              <label className="button button-secondary full-width replay-download-button" htmlFor="replay-import-workflow"><Download size={16} /> Import saved workflow JSON</label>
+              <input id="replay-import-workflow" type="file" accept=".json,application/json" onChange={importWorkflow} style={{ display: "none" }} />
               <button className="button button-primary full-width replay-download-button" onClick={startReplay} disabled={!validUrl || steps.length === 0 || submitting || ["queued", "running", "submitting"].includes(jobStatus)}><Video size={16} /> {submitting || ["queued", "running", "submitting"].includes(jobStatus) ? "Replay in progress…" : "Generate demo video"}</button>
               <button className="button button-secondary full-width replay-download-button" onClick={downloadWorkflow} disabled={!validUrl || steps.length === 0}><Download size={16} /> Download workflow JSON</button>
               {(jobStatus || jobError) && <div className={jobError ? "replay-job-status replay-job-error" : "replay-job-status"} role="status">
