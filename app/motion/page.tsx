@@ -98,9 +98,10 @@ export default function MotionStudioPage() {
     setExportError("");
     setExportSuccess("");
     try {
+      // HD output keeps product UI and small interface text much sharper than 480p.
+      // Keep 24 fps to balance smooth motion with browser memory on everyday devices.
       const fps = 24;
-      // Fast, phone-friendly default: about half the pixels and fewer frames than 720p/30fps.
-      const dimensions = { width: 854, height: 480 };
+      const dimensions = { width: 1280, height: 720 };
       const renderScenes = scenes.map((scene, index) => ({
         id: scene.id,
         kind: index === 0 ? "01 · OPEN" : index === scenes.length - 1 ? "CLOSING" : `SCENE ${String(index + 1).padStart(2, "0")}`,
@@ -142,7 +143,7 @@ export default function MotionStudioPage() {
       anchor.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 60000);
       setExportProgress(100);
-      setExportSuccess("Your MP4 is ready to play. Fast export: 480p at 24 fps. It includes animated scenes but no audio yet.");
+      setExportSuccess("Your MP4 is ready to play. HD export: 720p at 24 fps. It includes animated scenes but no audio yet.");
     } catch (error) {
       setExportError(error instanceof Error ? error.message : "MP4 export could not finish.");
     } finally {
