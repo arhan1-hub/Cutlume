@@ -158,8 +158,9 @@ async function applyPresentation(step, index) {
       if (locator) {
         // Match Playwright's later click behavior: bring off-screen targets into view
         // before positioning the spotlight and capturing its presentation frame.
-        await locator.scrollIntoViewIfNeeded({ timeout: step.timeout || 10000 }).catch(() => {});
-        targetBox = await locator.boundingBox().catch(() => null);
+        await locator.scrollIntoViewIfNeeded({ timeout: step.timeout || 10000 });
+        targetBox = await locator.boundingBox();
+        if (!targetBox) throw new Error(`Spotlight target is not visible: ${step.selector || step.text || step.label || step.role || "target"}`);
       }
     }
   }
