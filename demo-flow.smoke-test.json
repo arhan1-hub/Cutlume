@@ -2,6 +2,7 @@
   "name": "cutlume-smoke-success",
   "baseUrl": "http://127.0.0.1:4173/demo-smoke-test.html",
   "outputDir": "recordings",
+  "capturePresentationScreenshots": true,
   "viewport": {
     "width": 1280,
     "height": 800
