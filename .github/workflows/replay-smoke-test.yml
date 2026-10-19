@@ -59,7 +59,16 @@ jobs:
             if (report.mp4Status !== "created" || !report.mp4 || !fs.statSync(report.mp4).size) throw new Error("MP4 missing or empty");
             if (report.endCard?.status !== "shown") throw new Error("Branded end card was not shown");
             if (!report.endCard.screenshot || !fs.existsSync(report.endCard.screenshot) || !fs.statSync(report.endCard.screenshot).size) throw new Error("End-card screenshot missing or empty");
-            console.log("Success replay, WebM, MP4 and branded end card verified.");
+            const config = JSON.parse(fs.readFileSync("demo-flow.smoke-test.json", "utf8"));
+            const expectedPresentations = config.steps.filter((step) => step.caption || step.effect).length;
+            const presentations = report.presentationScreenshots || [];
+            if (presentations.length !== expectedPresentations) throw new Error(`Expected ${expectedPresentations} presentation screenshots, got ${presentations.length}`);
+            for (const item of presentations) {
+              if (!item.path || !fs.existsSync(item.path) || !fs.statSync(item.path).size) throw new Error(`Presentation screenshot missing for step ${item.step}`);
+              if (!item.captionVisible) throw new Error(`Caption overlay not visible for step ${item.step}`);
+            }
+            if (!presentations.some((item) => item.spotlightVisible)) throw new Error("No spotlight overlay was detected in presentation screenshots");
+            console.log("Success replay, WebM, MP4, branded end card, captions and spotlight diagnostics verified.");
           '
 
       - name: Test intentional failure still finalizes a recording and report
