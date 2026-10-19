@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Easing, Img, Video, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { Easing, Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { Video } from "@remotion/media";
 
 export type LaunchScene = {
   id: string;
