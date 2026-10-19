@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Easing, interpolate, useCurrentFrame } from "remotion";
+import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 
 export type LaunchScene = {
   id: string;
@@ -16,6 +16,7 @@ export type LaunchFilmProps = {
   scenes: LaunchScene[];
   mood: string;
   projectName: string;
+  productImage?: string;
 };
 
 const palette: Record<string, { a: string; b: string; accent: string; glow: string }> = {
@@ -25,13 +26,13 @@ const palette: Record<string, { a: string; b: string; accent: string; glow: stri
   "High energy": { a: "#071a22", b: "#007d87", accent: "#79f4df", glow: "#00cbb1" },
 };
 
-export function LaunchFilmComposition({ scenes, mood, projectName }: LaunchFilmProps) {
+export function LaunchFilmComposition({ scenes, mood, projectName, productImage }: LaunchFilmProps) {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const safeScenes = scenes.length ? scenes : [{
     id: "intro", kind: "01 · OPEN", title: "Your next big idea.",
     subtitle: "A better way to work starts here.", duration: 3, motion: "Slow reveal",
   }];
-  const fps = 30;
   let elapsed = 0;
   let activeIndex = safeScenes.length - 1;
   let localFrame = 0;
@@ -112,6 +113,17 @@ export function LaunchFilmComposition({ scenes, mood, projectName }: LaunchFilmP
           </div>
 
           <div style={{ position: "relative", minWidth: 0, opacity: entrance, transform: `translate(${panelShift}px, ${drift}px) rotateY(-5deg) rotateZ(-1deg)`, perspective: 900 }}>
+            {productImage ? (
+              <div style={{ ...glass, borderRadius: 17, padding: 8, transform: `scale(${interpolate(entrance, [0, 1], [.94, 1])})`, overflow: "hidden" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 3px 10px", borderBottom: "1px solid rgba(255,255,255,.1)" }}>
+                  <i style={{ width: 6, height: 6, borderRadius: 9, background: "#ff7f91" }} />
+                  <i style={{ width: 6, height: 6, borderRadius: 9, background: "#f5cb7a" }} />
+                  <i style={{ width: 6, height: 6, borderRadius: 9, background: "#7ce0b5" }} />
+                  <div style={{ marginLeft: 8, color: "rgba(255,255,255,.58)", fontSize: 8, letterSpacing: ".1em" }}>YOUR REAL PRODUCT</div>
+                </div>
+                <img src={productImage} alt="" style={{ display: "block", width: "100%", height: "auto", maxHeight: 420, objectFit: "contain", borderRadius: 8, marginTop: 8 }} />
+              </div>
+            ) : (
             <div style={{ ...glass, borderRadius: 17, padding: 12, transform: `scale(${interpolate(entrance, [0, 1], [.94, 1])})` }}>
               <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "2px 2px 12px", borderBottom: "1px solid rgba(255,255,255,.1)" }}>
                 <i style={{ width: 6, height: 6, borderRadius: 9, background: "#ff7f91" }} />
@@ -144,6 +156,7 @@ export function LaunchFilmComposition({ scenes, mood, projectName }: LaunchFilmP
                 <div style={{ padding: "6px 8px", borderRadius: 5, background: colors.accent, color: "#10101a", fontSize: 7, fontWeight: 800 }}>Explore ↗</div>
               </div>
             </div>
+            )}
             <div style={{ position: "absolute", top: "-7%", right: "-4%", width: 44, height: 44, borderRadius: 13, display: "grid", placeItems: "center", color: colors.accent, background: "#16172b", border: `1px solid ${colors.accent}70`, boxShadow: `0 10px 35px ${colors.glow}35`, fontSize: 19, transform: `translateY(${Math.sin(frame / 12) * 5}px) rotate(8deg)` }}>✳</div>
             {isBeforeAfter && <div style={{ position: "absolute", left: "-5%", bottom: "-6%", ...glass, borderRadius: 9, padding: "10px 13px", color: "#fff", fontSize: 9, letterSpacing: ".1em" }}><span style={{ color: "#ff9ba9" }}>BEFORE</span><span style={{ margin: "0 8px", color: "rgba(255,255,255,.35)" }}>→</span><span style={{ color: "#8ce7c3" }}>AFTER</span></div>}
             {isProductMoment && <div style={{ position: "absolute", right: "-3%", bottom: "-6%", ...glass, borderRadius: 9, padding: "10px 13px", color: colors.accent, fontSize: 9, letterSpacing: ".08em" }}>✦ KEY MOMENT REVEALED</div>}
