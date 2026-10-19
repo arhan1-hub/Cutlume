@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { LaunchFilmComposition } from "./components/LaunchFilmComposition";
 import {
   ArrowDownRight,
   ArrowLeft,
@@ -10,7 +11,9 @@ import {
   ChevronDown,
   Clapperboard,
   Clock3,
+  Download,
   Film,
+  LoaderCircle,
   Layers3,
   Play,
   Plus,
@@ -57,12 +60,35 @@ export default function Home() {
   const [productFile, setProductFile] = useState<File | null>(null);
   const [scenes, setScenes] = useState<Scene[]>(initialScenes);
   const [activeScene, setActiveScene] = useState(0);
+  const [previewPlaying, setPreviewPlaying] = useState(false);
+  const [previewSceneIndex, setPreviewSceneIndex] = useState(0);
+  const [previewSecond, setPreviewSecond] = useState(0);
   const [saved, setSaved] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
+  const [exportError, setExportError] = useState("");
+  const [exportSuccess, setExportSuccess] = useState("");
 
   const totalDuration = useMemo(() => scenes.reduce((sum, scene) => sum + scene.duration, 0), [scenes]);
   const selectedScene = scenes[activeScene] ?? scenes[0];
+  const previewScene = scenes[previewSceneIndex] ?? scenes[0];
+
+  useEffect(() => {
+    if (!previewPlaying || stage !== 3 || scenes.length === 0) return;
+    const timer = window.setInterval(() => {
+      setPreviewSecond((second) => {
+        const current = scenes[previewSceneIndex] ?? scenes[0];
+        if (second + 1 >= Math.max(2, current.duration)) {
+          setPreviewSceneIndex((index) => (index + 1) % scenes.length);
+          return 0;
+        }
+        return second + 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [previewPlaying, stage, scenes, previewSceneIndex]);
 
   useEffect(() => {
     try {
@@ -125,11 +151,106 @@ export default function Home() {
     URL.revokeObjectURL(url);
   }
 
+  async function exportMp4() {
+    if (exporting || scenes.length === 0) return;
+
+    setExporting(true);
+    setExportProgress(0);
+    setExportError("");
+    setExportSuccess("");
+
+    try {
+      const fps = 30;
+      const dimensions = format.startsWith("Portrait")
+        ? { width: 720, height: 1280 }
+        : format.startsWith("Square")
+          ? { width: 720, height: 720 }
+          : { width: 1280, height: 720 };
+      const durationInFrames = scenes.reduce(
+        (sum, scene) => sum + Math.max(2, Math.round(scene.duration * fps)),
+        0,
+      );
+
+      if (typeof window === "undefined" || !("VideoEncoder" in window)) {
+        throw new Error("MP4 export needs a modern browser with WebCodecs support. Try the latest Chrome or another supported desktop browser.");
+      }
+
+      setExportProgress(3);
+      const { canRenderMediaOnWeb, renderMediaOnWeb } = await import("@remotion/web-renderer");
+      const support = await canRenderMediaOnWeb({
+        ...dimensions,
+        container: "mp4",
+        videoCodec: "h264",
+        muted: true,
+      });
+
+      if (!support.canRender) {
+        throw new Error(
+          support.issues
+            .filter((issue) => issue.severity === "error")
+            .map((issue) => issue.message)
+            .join(" ") || "This browser cannot render the selected MP4 format.",
+        );
+      }
+
+      setExportProgress(8);
+      const { getBlob } = await renderMediaOnWeb({
+        composition: {
+          component: LaunchFilmComposition,
+          durationInFrames,
+          fps,
+          width: dimensions.width,
+          height: dimensions.height,
+          id: "cutlume-launch-film",
+          defaultProps: { scenes, mood, projectName },
+        },
+        inputProps: { scenes, mood, projectName },
+        container: "mp4",
+        videoCodec: "h264",
+        muted: true,
+        onProgress: ({ progress }: { progress: number }) => {
+          const percent = Math.max(8, Math.min(99, Math.round(progress * 100)));
+          setExportProgress((currentProgress) => currentProgress === percent ? currentProgress : percent);
+        },
+      });
+
+      const blob = await getBlob();
+      if (!blob || blob.size === 0) {
+        throw new Error("The renderer finished without producing a video file. Please try again with fewer scenes.");
+      }
+
+      const safeName =
+        (projectName || "cutlume-launch-film")
+          .trim()
+          .replace(/[^a-zA-Z0-9-_]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .toLowerCase() || "cutlume-launch-film";
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${safeName}.mp4`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+
+      setExportProgress(100);
+      setExportSuccess("Your MP4 is ready. Open it in a video player to check the result.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "The MP4 could not be rendered.";
+      setExportError(message);
+    } finally {
+      setExporting(false);
+    }
+  }
+
   function resetProject() {
     setStage(0);
     setWorkspace(false);
     setScenes(initialScenes);
     setActiveScene(0);
+    setExportError("");
+    setExportSuccess("");
   }
 
   return (
@@ -247,7 +368,7 @@ export default function Home() {
 
           {stage === 2 && <div className="storyboard-layout"><div className="storyboard-column"><div className="panel-heading"><div><div className="eyebrow">STEP 03 / STORY STRUCTURE</div><h2>A story in four beats.</h2><p>Edit each scene. Keep what works. Make it yours.</p></div><button className="button button-quiet button-small" onClick={() => { setScenes(initialScenes); setActiveScene(0); }}>Reset <ArrowRight size={13} /></button></div><div className="scene-list">{scenes.map((scene, index) => <button key={scene.id} className={`scene-row ${activeScene === index ? "selected" : ""}`} onClick={() => setActiveScene(index)}><div className={`scene-thumb scene-thumb-${index % 4}`}><span>{String(index + 1).padStart(2, "0")}</span><div className="thumb-lines"><i /><i /><i /></div></div><div className="scene-row-copy"><span className="scene-kind">{scene.kind}</span><strong>{scene.title}</strong><span className="scene-subtitle">{scene.subtitle}</span></div><span className="scene-time">{scene.duration}s</span><ArrowUpRight className="scene-arrow" size={14} /></button>)}</div><button className="add-scene-button" onClick={() => { const newScene = { id: `scene-${Date.now()}`, kind: `0${scenes.length + 1} · NEW SCENE`, title: "A moment worth showing.", subtitle: "Your product, in its best light.", duration: 3, motion: "Slow reveal" }; setScenes((current) => [...current, newScene]); setActiveScene(scenes.length); }}><Plus size={15} /> Add another scene</button><div className="panel-footer"><button className="button button-quiet" onClick={() => setStage(1)}><ArrowLeft size={15} /> Back</button><button className="button button-primary" onClick={() => setStage(3)}>Preview film <Play size={14} /></button></div></div><div className="scene-edit-panel panel"><div className="eyebrow">SCENE SETTINGS</div><div className={`edit-preview scene-thumb-${activeScene % 4}`}><span className="edit-preview-kicker">{selectedScene?.kind}</span><strong>{selectedScene?.title}</strong><span className="edit-preview-sub">{selectedScene?.subtitle}</span><div className="preview-sweep" /></div>{selectedScene && <><label className="field-label" htmlFor="scene-title">HEADLINE</label><input id="scene-title" className="text-input" value={selectedScene.title} onChange={(event) => updateScene("title", event.target.value)} /><label className="field-label" htmlFor="scene-subtitle">SUPPORTING LINE</label><textarea id="scene-subtitle" className="text-input text-area" value={selectedScene.subtitle} onChange={(event) => updateScene("subtitle", event.target.value)} rows={2} /><div className="duration-header"><label className="field-label" htmlFor="scene-duration">DURATION</label><span>{selectedScene.duration}s</span></div><input id="scene-duration" className="range-input" type="range" min="2" max="8" value={selectedScene.duration} onChange={(event) => updateScene("duration", Number(event.target.value))} /><label className="field-label" htmlFor="scene-motion">MOTION PRESET</label><div className="select-wrap"><select id="scene-motion" className="text-input" value={selectedScene.motion} onChange={(event) => updateScene("motion", event.target.value)}><option>Slow reveal</option><option>Focus zoom</option><option>Slide & settle</option><option>Soft fade</option><option>Orbit drift</option></select><ChevronDown size={15} /></div></>}<div className="scene-edit-foot"><span><span className="save-dot" /> Changes save locally</span><span>SCENE {String(activeScene + 1).padStart(2, "0")}</span></div></div></div>}
 
-          {stage === 3 && <div className="export-layout"><div className="export-preview panel"><div className="preview-toolbar"><span><span className="live-dot" /> PREVIEW / {format.toUpperCase()}</span><span>{totalDuration}s total</span></div><div className={`final-film format-${format.startsWith("Portrait") ? "portrait" : format.startsWith("Square") ? "square" : "landscape"} scene-thumb-${activeScene % 4}`}><div className="film-grain" /><div className="film-kicker">{selectedScene?.kind} · {projectName || "YOUR PRODUCT"}</div><h2>{selectedScene?.title}</h2><p>{selectedScene?.subtitle}</p><div className="film-ui"><span /><span /><span /></div><div className="film-progress"><i style={{ width: `${((activeScene + 1) / scenes.length) * 100}%` }} /></div></div><div className="preview-controls"><button className="button button-quiet" onClick={() => setActiveScene((activeScene - 1 + scenes.length) % scenes.length)}><ArrowLeft size={15} /> Previous scene</button><span>SCENE {activeScene + 1} / {scenes.length}</span><button className="button button-quiet" onClick={() => setActiveScene((activeScene + 1) % scenes.length)}>Next scene <ArrowRight size={15} /></button></div><div className="preview-disclaimer"><Sparkles size={15} /><span>This is an animated storyboard preview, not a rendered video. Product footage and reference video have not been composited into an MP4.</span></div></div><aside className="export-side panel"><div className="eyebrow">YOUR FIRST CUT</div><h2>{projectName || "Untitled launch film"}</h2><p className="export-description">A {mood.toLowerCase()} direction with {scenes.length} scenes, ready for your review.</p><div className="export-stat"><span>EST. DURATION</span><strong>{totalDuration} <small>sec</small></strong></div><div className="export-stat"><span>SCENES</span><strong>{scenes.length}</strong></div><div className="export-stat"><span>FORMAT</span><strong className="format-stat">{format.split(" · ")[1]}</strong></div><button className="button button-primary full-width" onClick={downloadStoryboard}>Download storyboard <ArrowDownRight size={16} /></button><button className="button button-secondary full-width" onClick={() => { setStage(2); }}>Edit scenes <Layers3 size={15} /></button><button className="button button-quiet full-width" onClick={() => setShowFeedback(true)}>Give feedback <ArrowUpRight size={14} /></button><p className="export-fineprint">Downloads an editable storyboard JSON. MP4 export is not available in this build.</p></aside></div>}
+          {stage === 3 && <div className="export-layout"><div className="export-preview panel"><div className="preview-toolbar"><span><span className="live-dot" /> PREVIEW / {format.toUpperCase()}</span><span>{totalDuration}s total</span></div><div className={`final-film format-${format.startsWith("Portrait") ? "portrait" : format.startsWith("Square") ? "square" : "landscape"} scene-thumb-${previewSceneIndex % 4} ${previewPlaying ? "preview-is-playing" : ""}`} key={`${previewSceneIndex}-${previewPlaying ? "play" : "pause"}`}><div className="film-grain" /><div className="film-kicker">{previewScene?.kind} · {projectName || "YOUR PRODUCT"}</div><h2>{previewScene?.title}</h2><p>{previewScene?.subtitle}</p><div className="film-ui"><span /><span /><span /></div><div className="film-progress"><i style={{ width: `${((previewSceneIndex + previewSecond / Math.max(2, previewScene?.duration ?? 2)) / scenes.length) * 100}%` }} /></div><div className="film-play-overlay">{previewPlaying ? "PLAYING PREVIEW" : "PREVIEW PAUSED"}</div></div><div className="preview-controls"><button className="button button-primary" onClick={() => setPreviewPlaying((playing) => !playing)}><Play size={15} fill="currentColor" /> {previewPlaying ? "Pause preview" : "Play film"}</button><button className="button button-quiet" onClick={() => { setPreviewPlaying(false); setPreviewSecond(0); setPreviewSceneIndex((previewSceneIndex - 1 + scenes.length) % scenes.length); }}><ArrowLeft size={15} /> Previous</button><span>SCENE {previewSceneIndex + 1} / {scenes.length}</span><button className="button button-quiet" onClick={() => { setPreviewPlaying(false); setPreviewSecond(0); setPreviewSceneIndex((previewSceneIndex + 1) % scenes.length); }}>Next <ArrowRight size={15} /></button></div><div className="preview-disclaimer"><Sparkles size={15} /><span>Playable animated storyboard preview. This prototype still does not combine your uploaded footage or analyse reference videos automatically.</span></div></div><aside className="export-side panel"><div className="eyebrow">YOUR FIRST CUT</div><h2>{projectName || "Untitled launch film"}</h2><p className="export-description">A {mood.toLowerCase()} direction with {scenes.length} scenes, ready for your review.</p><div className="export-stat"><span>EST. DURATION</span><strong>{totalDuration} <small>sec</small></strong></div><div className="export-stat"><span>SCENES</span><strong>{scenes.length}</strong></div><div className="export-stat"><span>FORMAT</span><strong className="format-stat">{format.split(" · ")[1]}</strong></div><button className="button button-primary full-width" onClick={exportMp4} disabled={exporting}>{exporting ? <><LoaderCircle size={16} className="export-spinner" /> Rendering MP4…</> : <><Download size={16} /> Export MP4</>}</button>{exporting && <div className="export-progress-wrap" role="status" aria-live="polite"><div className="export-progress-label"><span>Rendering on this device</span><strong>{exportProgress}%</strong></div><div className="export-progress-track"><i style={{ width: `${exportProgress}%` }} /></div><p>Your browser is creating each frame and encoding the video. Keep this tab open.</p></div>}{exportError && <div className="export-message export-error" role="alert"><strong>Export couldn't finish.</strong><span>{exportError}</span></div>}{exportSuccess && <div className="export-message export-success" role="status"><strong>Export complete</strong><span>{exportSuccess}</span></div>}<button className="button button-secondary full-width" onClick={downloadStoryboard}>Download storyboard JSON <ArrowDownRight size={16} /></button><button className="button button-secondary full-width" onClick={() => { setStage(2); }}>Edit scenes <Layers3 size={15} /></button><button className="button button-quiet full-width" onClick={() => setShowFeedback(true)}>Give feedback <ArrowUpRight size={14} /></button><p className="export-fineprint">Creates a silent MP4 locally in your browser. Your project files are not uploaded. Export support depends on your browser and device.</p></aside></div>}
 
           <div className="studio-footnote"><span>✳</span> A prototype for original, reference-guided product storytelling.</div>
         </section>

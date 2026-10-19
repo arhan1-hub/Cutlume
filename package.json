@@ -12,7 +12,9 @@
     "lucide-react": "^0.468.0",
     "next": "^15.2.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "remotion": "4.0.536",
+    "@remotion/web-renderer": "4.0.536"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
