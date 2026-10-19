@@ -25,3 +25,5 @@ jobs:
           node --check scripts/demo-replay.mjs
       - name: Build replay worker image
         run: docker build -f replay-worker/Dockerfile -t cutlume-replay-worker:ci .
+      - name: Verify the packaged upload fixture exists in the image
+        run: docker run --rm --entrypoint sh cutlume-replay-worker:ci -c 'test -s /app/fixtures/demo-image.svg'
