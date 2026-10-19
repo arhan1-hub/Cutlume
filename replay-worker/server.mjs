@@ -70,7 +70,18 @@ function validateWorkflow(value) {
     for (const key of ["label", "selector", "value", "text", "caption", "url", "file"]) {
       if (raw[key] !== undefined && (typeof raw[key] !== "string" || raw[key].length > 2000)) throw new Error("Step " + (i + 1) + " has an invalid " + key + " field.");
     }
-    if (raw.action === "upload") throw new Error("Hosted upload actions are disabled until a trusted fixture upload flow is configured.");
+    if (raw.action === "upload") {
+      if (raw.file !== "./fixtures/demo-image.svg") throw new Error("Hosted uploads only support the packaged sample image.");
+      const trigger = raw.trigger;
+      if (!trigger || typeof trigger !== "object" || Array.isArray(trigger)) throw new Error("Sample upload needs an accessible attach-button target.");
+      const hasTrigger = (typeof trigger.selector === "string" && trigger.selector.length > 0) ||
+        (typeof trigger.role === "string" && typeof trigger.name === "string" && trigger.name.length > 0) ||
+        (typeof trigger.text === "string" && trigger.text.length > 0) ||
+        (typeof trigger.label === "string" && trigger.label.length > 0) ||
+        (typeof trigger.placeholder === "string" && trigger.placeholder.length > 0) ||
+        (typeof trigger.testId === "string" && trigger.testId.length > 0);
+      if (!hasTrigger || "x" in trigger || "y" in trigger) throw new Error("Sample upload needs a supported accessible attach-button target; coordinates are not accepted.");
+    }
     if (raw.action === "goto") throw new Error("Additional navigation steps are disabled; the worker visits only the allowlisted base URL.");
     if (raw.action === "clickAt" || raw.action === "typeAt") throw new Error("Coordinate actions are disabled in hosted mode; use stable accessible selectors.");
     if (raw.action === "wait" && Number(raw.ms) > 30000) throw new Error("Pause cannot exceed 30 seconds.");
