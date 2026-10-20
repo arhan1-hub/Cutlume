@@ -315,21 +315,25 @@ export default function DemoReplayPage() {
           if (typeof step.action !== "string" || !allowedActions.has(step.action as ReplayAction)) {
             throw new Error(`Step ${index + 1} uses an unsupported action.`);
           }
+          const trigger = step.trigger && typeof step.trigger === "object" && !Array.isArray(step.trigger)
+            ? step.trigger as Record<string, unknown>
+            : {};
+          const locatorSource = step.action === "upload" ? trigger : step;
           return {
             id: makeId(),
             action: step.action as ReplayAction,
             label: typeof step.label === "string" ? step.label : `Step ${index + 1}`,
-            selector: typeof step.selector === "string" ? step.selector : "",
+            selector: typeof locatorSource.selector === "string" ? locatorSource.selector : "",
             value: typeof step.value === "string" ? step.value : typeof step.key === "string" ? step.key : typeof step.ms === "number" ? String(step.ms) : step.action === "waitForText" && typeof step.text === "string" ? step.text : "",
             caption: typeof step.caption === "string" ? step.caption : "",
             effect: step.effect === "spotlight" || step.effect === true,
-            ...(typeof step.role === "string" ? { role: step.role } : {}),
-            ...(typeof step.name === "string" ? { name: step.name } : {}),
-            ...(typeof step.placeholder === "string" ? { placeholder: step.placeholder } : {}),
-            ...(typeof step.testId === "string" ? { testId: step.testId } : {}),
-            ...(typeof step.locatorLabel === "string" ? { locatorLabel: step.locatorLabel } : {}),
-            ...(typeof step.text === "string" && step.action !== "waitForText" ? { locatorText: step.text } : {}),
-            ...(typeof step.exact === "boolean" ? { exact: step.exact } : {}),
+            ...(typeof locatorSource.role === "string" ? { role: locatorSource.role } : {}),
+            ...(typeof locatorSource.name === "string" ? { name: locatorSource.name } : {}),
+            ...(typeof locatorSource.placeholder === "string" ? { placeholder: locatorSource.placeholder } : {}),
+            ...(typeof locatorSource.testId === "string" ? { testId: locatorSource.testId } : {}),
+            ...(typeof locatorSource.locatorLabel === "string" ? { locatorLabel: locatorSource.locatorLabel } : typeof locatorSource.label === "string" && step.action === "upload" ? { locatorLabel: locatorSource.label } : {}),
+            ...(typeof locatorSource.text === "string" && step.action !== "waitForText" ? { locatorText: locatorSource.text } : {}),
+            ...(typeof locatorSource.exact === "boolean" ? { exact: locatorSource.exact } : {}),
           };
         });
         const style = parsed.recordingStyle && typeof parsed.recordingStyle === "object"
