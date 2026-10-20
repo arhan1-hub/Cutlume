@@ -147,3 +147,7 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Local demo replay config may contain target URLs or test account details
+demo-flow.json
+recordings/

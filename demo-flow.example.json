@@ -1,0 +1,45 @@
+{
+  "name": "my-product-demo",
+  "baseUrl": "http://127.0.0.1:3000",
+  "outputDir": "recordings",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "steps": [
+    {
+      "action": "waitForSelector",
+      "selector": "body",
+      "label": "Wait for the app to load"
+    },
+    {
+      "action": "click",
+      "selector": "button[data-demo='start']",
+      "label": "Open the main workflow",
+      "pauseAfter": 800
+    },
+    {
+      "action": "fill",
+      "selector": "textarea[name='prompt']",
+      "value": "Show me a sample result",
+      "label": "Enter a sample prompt"
+    },
+    {
+      "action": "click",
+      "selector": "button[type='submit']",
+      "label": "Run the workflow",
+      "pauseAfter": 1800
+    },
+    {
+      "action": "waitForSelector",
+      "selector": "[data-demo='result']",
+      "label": "Wait for the result to appear",
+      "timeout": 20000
+    },
+    {
+      "action": "screenshot",
+      "file": "result-screen.png",
+      "label": "Save a checkpoint screenshot"
+    }
+  ]
+}

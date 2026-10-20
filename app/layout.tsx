@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Cutlume — Make your product feel like a launch",
+  title: "Cutlume — Replay product demos after UI changes",
   description:
-    "Turn real product recordings into cinematic launch-video storyboards, guided by the visual style you love.",
+    "Record a product workflow once, replay it after UI changes, and create a captioned, branded demo video. Early prototype: verify compatibility with your app before relying on it.",
   applicationName: "Cutlume",
 };
 
