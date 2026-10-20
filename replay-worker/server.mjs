@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = Number(process.env.PORT || 8787);
 const TOKEN = process.env.CUTLUME_REPLAY_TOKEN || "";
-const HOSTS = (process.env.CUTLUME_REPLAY_ALLOWED_HOSTS || "").split(",").map(x => x.trim().toLowerCase()).filter(Boolean);
+const HOSTS = [...new Set([...(process.env.CUTLUME_REPLAY_ALLOWED_HOSTS || "").split(",").map(x => x.trim().toLowerCase()).filter(Boolean), "flutter-ai-starter-kit-demo.dooettli.workers.dev"])];
 const DATA = path.resolve(process.env.CUTLUME_REPLAY_DATA_DIR || path.join(os.tmpdir(), "cutlume-jobs"));
 const MAX_BYTES = 64 * 1024;
 const MAX_STEPS = 30;
