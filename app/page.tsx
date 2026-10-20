@@ -20,6 +20,7 @@ import {
   Sparkles,
   Upload,
   WandSparkles,
+  Workflow,
   X,
 } from "lucide-react";
 
@@ -284,9 +285,9 @@ export default function Home() {
               <h1>Your product ships.<br /><span className="gradient-text">Your demo stays fresh.</span></h1>
               <p className="hero-description">Record your product flow once. Replay it after your UI changes. Keep the captions, highlights and branded ending—and export a shareable demo video without re-recording every click.</p>
               <div className="hero-actions">
-                <button className="button button-primary button-large" onClick={() => { setWorkspace(true); setStage(0); }}>
+                <a className="button button-primary button-large" href="/replay">
                   Build a replay workflow <ArrowRight size={17} />
-                </button>
+                </a>
                 <a className="text-link" href="#how-it-works"><span className="play-outline"><Play size={12} fill="currentColor" /></span> See the process</a>
                 <a className="text-link" href="/replay"><span className="play-outline"><ArrowUpRight size={12} /></span> Try demo replay</a>
               </div>
