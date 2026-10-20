@@ -72,7 +72,7 @@ function validateWorkflow(value) {
     }
     if (raw.exact !== undefined && typeof raw.exact !== "boolean") throw new Error("Step " + (i + 1) + " has an invalid exact field.");
     if (raw.trigger && typeof raw.trigger === "object" && !Array.isArray(raw.trigger)) {
-      for (const key of ["selector", "role", "name", "text", "label", "placeholder", "testId"]) {
+      for (const key of ["selector", "role", "name", "text", "label", "locatorLabel", "placeholder", "testId"]) {
         if (raw.trigger[key] !== undefined && (typeof raw.trigger[key] !== "string" || raw.trigger[key].length > 2000)) throw new Error("Step " + (i + 1) + " has an invalid upload trigger " + key + " field.");
       }
       if (raw.trigger.exact !== undefined && typeof raw.trigger.exact !== "boolean") throw new Error("Step " + (i + 1) + " has an invalid upload trigger exact field.");
@@ -85,6 +85,7 @@ function validateWorkflow(value) {
         (typeof trigger.role === "string" && typeof trigger.name === "string" && trigger.name.length > 0) ||
         (typeof trigger.text === "string" && trigger.text.length > 0) ||
         (typeof trigger.label === "string" && trigger.label.length > 0) ||
+        (typeof trigger.locatorLabel === "string" && trigger.locatorLabel.length > 0) ||
         (typeof trigger.placeholder === "string" && trigger.placeholder.length > 0) ||
         (typeof trigger.testId === "string" && trigger.testId.length > 0);
       if (!hasTrigger || "x" in trigger || "y" in trigger) throw new Error("Sample upload needs a supported accessible attach-button target; coordinates are not accepted.");
