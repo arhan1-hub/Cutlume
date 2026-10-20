@@ -38,6 +38,11 @@ type ReplayStep = {
   value: string;
   caption: string;
   effect: boolean;
+  role?: string;
+  name?: string;
+  placeholder?: string;
+  testId?: string;
+  exact?: boolean;
 };
 
 const starterSteps: ReplayStep[] = [
@@ -174,21 +179,35 @@ export default function DemoReplayPage() {
         label: step.label,
         caption: step.caption,
         ...(step.effect ? { effect: "spotlight" } : {}),
+        ...(step.selector ? { selector: step.selector } : {}),
+        ...(step.role ? { role: step.role } : {}),
+        ...(step.name ? { name: step.name } : {}),
+        ...(step.placeholder ? { placeholder: step.placeholder } : {}),
+        ...(step.testId ? { testId: step.testId } : {}),
+        ...(typeof step.exact === "boolean" ? { exact: step.exact } : {}),
+      };
+      const locatorConfig = {
+        ...(step.selector ? { selector: step.selector } : {}),
+        ...(step.role ? { role: step.role } : {}),
+        ...(step.name ? { name: step.name } : {}),
+        ...(step.placeholder ? { placeholder: step.placeholder } : {}),
+        ...(step.testId ? { testId: step.testId } : {}),
+        ...(typeof step.exact === "boolean" ? { exact: step.exact } : {}),
       };
       if (step.action === "upload") {
-        return { ...common, file: "./fixtures/demo-image.svg", trigger: { selector: step.selector }, presentationMs: 900 };
+        return { ...common, file: "./fixtures/demo-image.svg", trigger: locatorConfig, presentationMs: 900 };
       }
       if (step.action === "fill") {
-        return { ...common, selector: step.selector, value: step.value, presentationMs: 1500 };
+        return { ...common, value: step.value, presentationMs: 1500 };
       }
       if (step.action === "press") {
-        return { ...common, selector: step.selector, key: step.value || "Enter", presentationMs: 900 };
+        return { ...common, key: step.value || "Enter", presentationMs: 900 };
       }
       if (step.action === "waitForText") {
         return { ...common, text: step.value, timeout: 20000 };
       }
       if (step.action === "waitForStableText") {
-        return { ...common, selector: step.selector, stableMs: 1200, timeout: 20000 };
+        return { ...common, stableMs: 1200, timeout: 20000 };
       }
       if (step.action === "wait") {
         return { ...common, ms: Number(step.value) || 800 };
@@ -196,7 +215,7 @@ export default function DemoReplayPage() {
       if (step.action === "screenshot") {
         return { ...common, file: `${step.id}.png` };
       }
-      return { ...common, selector: step.selector, ...(step.action === "waitForSelector" ? { timeout: 15000 } : {}) };
+      return { ...common, ...(step.action === "waitForSelector" ? { timeout: 15000 } : {}) };
     }),
     endCard: {
       enabled: true,
@@ -298,6 +317,11 @@ export default function DemoReplayPage() {
             value: typeof step.value === "string" ? step.value : typeof step.key === "string" ? step.key : typeof step.ms === "number" ? String(step.ms) : typeof step.text === "string" ? step.text : "",
             caption: typeof step.caption === "string" ? step.caption : "",
             effect: step.effect === "spotlight" || step.effect === true,
+            ...(typeof step.role === "string" ? { role: step.role } : {}),
+            ...(typeof step.name === "string" ? { name: step.name } : {}),
+            ...(typeof step.placeholder === "string" ? { placeholder: step.placeholder } : {}),
+            ...(typeof step.testId === "string" ? { testId: step.testId } : {}),
+            ...(typeof step.exact === "boolean" ? { exact: step.exact } : {}),
           };
         });
         const style = parsed.recordingStyle && typeof parsed.recordingStyle === "object"
