@@ -42,6 +42,8 @@ type ReplayStep = {
   name?: string;
   placeholder?: string;
   testId?: string;
+  locatorLabel?: string;
+  locatorText?: string;
   exact?: boolean;
 };
 
@@ -184,6 +186,8 @@ export default function DemoReplayPage() {
         ...(step.name ? { name: step.name } : {}),
         ...(step.placeholder ? { placeholder: step.placeholder } : {}),
         ...(step.testId ? { testId: step.testId } : {}),
+        ...(step.locatorLabel ? { locatorLabel: step.locatorLabel } : {}),
+        ...(step.locatorText && step.action !== "waitForText" ? { text: step.locatorText } : {}),
         ...(typeof step.exact === "boolean" ? { exact: step.exact } : {}),
       };
       const locatorConfig = {
@@ -192,6 +196,8 @@ export default function DemoReplayPage() {
         ...(step.name ? { name: step.name } : {}),
         ...(step.placeholder ? { placeholder: step.placeholder } : {}),
         ...(step.testId ? { testId: step.testId } : {}),
+        ...(step.locatorLabel ? { label: step.locatorLabel } : {}),
+        ...(step.locatorText ? { text: step.locatorText } : {}),
         ...(typeof step.exact === "boolean" ? { exact: step.exact } : {}),
       };
       if (step.action === "upload") {
@@ -314,13 +320,15 @@ export default function DemoReplayPage() {
             action: step.action as ReplayAction,
             label: typeof step.label === "string" ? step.label : `Step ${index + 1}`,
             selector: typeof step.selector === "string" ? step.selector : "",
-            value: typeof step.value === "string" ? step.value : typeof step.key === "string" ? step.key : typeof step.ms === "number" ? String(step.ms) : typeof step.text === "string" ? step.text : "",
+            value: typeof step.value === "string" ? step.value : typeof step.key === "string" ? step.key : typeof step.ms === "number" ? String(step.ms) : step.action === "waitForText" && typeof step.text === "string" ? step.text : "",
             caption: typeof step.caption === "string" ? step.caption : "",
             effect: step.effect === "spotlight" || step.effect === true,
             ...(typeof step.role === "string" ? { role: step.role } : {}),
             ...(typeof step.name === "string" ? { name: step.name } : {}),
             ...(typeof step.placeholder === "string" ? { placeholder: step.placeholder } : {}),
             ...(typeof step.testId === "string" ? { testId: step.testId } : {}),
+            ...(typeof step.locatorLabel === "string" ? { locatorLabel: step.locatorLabel } : {}),
+            ...(typeof step.text === "string" && step.action !== "waitForText" ? { locatorText: step.text } : {}),
             ...(typeof step.exact === "boolean" ? { exact: step.exact } : {}),
           };
         });
@@ -514,7 +522,16 @@ export default function DemoReplayPage() {
                     <input id={`label-${step.id}`} className="text-input" value={step.label} onChange={(event) => updateStep(step.id, { label: event.target.value })} placeholder="What is happening?" />
                     {step.action !== "wait" && step.action !== "screenshot" && step.action !== "waitForText" && <>
                       <label className="field-label" htmlFor={`selector-${step.id}`}>{step.action === "waitForStableText" ? "TEXT TARGET SELECTOR" : step.action === "upload" ? "ATTACH BUTTON SELECTOR" : "CSS SELECTOR"}</label>
-                      <input id={`selector-${step.id}`} className="text-input replay-code-input" value={step.selector} onChange={(event) => updateStep(step.id, { selector: event.target.value })} placeholder={step.action === "upload" ? "e.g. [data-testid='attach-image']" : "e.g. button[type='submit'] or [data-testid='send']"} />
+                      <input id={`selector-${step.id}`} className="text-input replay-code-input" value={step.selector} onChange={(event) => updateStep(step.id, { selector: event.target.value })} placeholder={step.action === "upload" ? "e.g. [data-testid='attach-image']" : "e.g. button[type='submit'] or [data-testid='send']"} /> 
+                      <details className="replay-locator-options"><summary>Accessible locator options</summary>
+                        <label className="field-label" htmlFor={\`role-\${step.id}\`}>ROLE</label><input id={\`role-\${step.id}\`} className="text-input" value={step.role || ""} onChange={(event) => updateStep(step.id, { role: event.target.value })} placeholder="button, textbox, link" />
+                        <label className="field-label" htmlFor={\`name-\${step.id}\`}>ACCESSIBLE NAME</label><input id={\`name-\${step.id}\`} className="text-input" value={step.name || ""} onChange={(event) => updateStep(step.id, { name: event.target.value })} placeholder="Send prompt" />
+                        <label className="field-label" htmlFor={\`placeholder-\${step.id}\`}>PLACEHOLDER</label><input id={\`placeholder-\${step.id}\`} className="text-input" value={step.placeholder || ""} onChange={(event) => updateStep(step.id, { placeholder: event.target.value })} placeholder="Ask anything…" />
+                        <label className="field-label" htmlFor={\`testid-\${step.id}\`}>TEST ID</label><input id={\`testid-\${step.id}\`} className="text-input" value={step.testId || ""} onChange={(event) => updateStep(step.id, { testId: event.target.value })} placeholder="prompt-input" />
+                        <label className="field-label" htmlFor={\`locator-label-\${step.id}\`}>FORM LABEL</label><input id={\`locator-label-\${step.id}\`} className="text-input" value={step.locatorLabel || ""} onChange={(event) => updateStep(step.id, { locatorLabel: event.target.value })} placeholder="Prompt" />
+                        {step.action !== "waitForText" && <><label className="field-label" htmlFor={\`locator-text-\${step.id}\`}>VISIBLE TEXT TARGET</label><input id={\`locator-text-\${step.id}\`} className="text-input" value={step.locatorText || ""} onChange={(event) => updateStep(step.id, { locatorText: event.target.value })} placeholder="Attach image" /></>}
+                        <label className="replay-check-row"><input type="checkbox" checked={Boolean(step.exact)} onChange={(event) => updateStep(step.id, { exact: event.target.checked })} /><span className="replay-check-box"><Check size={12} /></span><span>Match text exactly</span></label>
+                      </details>
                       {step.action === "upload" && <p className="replay-field-hint">Uses Cutlume’s bundled sample image only. Arbitrary file uploads are disabled in the hosted prototype.</p>}
                     </>}
                     {(step.action === "fill" || step.action === "press" || step.action === "waitForText" || step.action === "waitForStableText" || step.action === "wait") && <>
