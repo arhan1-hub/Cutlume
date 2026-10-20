@@ -14,7 +14,10 @@ function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
 }
 function configuredHosts() {
-  return (process.env.CUTLUME_REPLAY_ALLOWED_HOSTS ?? "").split(",").map((host) => host.trim().toLowerCase()).filter(Boolean);
+  const configured = (process.env.CUTLUME_REPLAY_ALLOWED_HOSTS ?? "").split(",").map((host) => host.trim().toLowerCase()).filter(Boolean);
+  // Allow this explicitly approved test app on Vercel Preview only; production stays env-configured.
+  if (process.env.VERCEL_ENV === "preview") configured.push("flutter-ai-starter-kit-demo.dooettli.workers.dev");
+  return [...new Set(configured)];
 }
 function validateTarget(raw: unknown) {
   if (typeof raw !== "string" || raw.length > 2048) return "A valid target URL is required.";
