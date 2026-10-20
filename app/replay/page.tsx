@@ -196,7 +196,7 @@ export default function DemoReplayPage() {
         ...(step.name ? { name: step.name } : {}),
         ...(step.placeholder ? { placeholder: step.placeholder } : {}),
         ...(step.testId ? { testId: step.testId } : {}),
-        ...(step.locatorLabel ? { label: step.locatorLabel } : {}),
+        ...(step.locatorLabel ? { locatorLabel: step.locatorLabel } : {}),
         ...(step.locatorText ? { text: step.locatorText } : {}),
         ...(typeof step.exact === "boolean" ? { exact: step.exact } : {}),
       };
