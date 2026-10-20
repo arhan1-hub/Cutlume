@@ -57,6 +57,7 @@ let failure = null;
 const completedSteps = [];
 const presentationScreenshots = [];
 let endCardResult = null;
+const runtimeErrors = [];
 
 function getLocator(step) {
   if (step.role) return page.getByRole(step.role, { name: step.name, exact: step.exact ?? false }).first();
@@ -480,6 +481,10 @@ try {
     recordVideo: { dir: outputDir, size: viewport },
   });
   page = await context.newPage();
+  page.on("pageerror", error => runtimeErrors.push(error.message));
+  page.on("console", message => {
+    if (message.type() === "error" && /RenderBox was not laid out|FlutterError|Uncaught Error/i.test(message.text())) runtimeErrors.push(message.text().slice(0, 1200));
+  });
   if (process.env.CUTLUME_REPLAY_ENFORCE_HOST_ALLOWLIST === "1") {
     const allowedHosts = (process.env.CUTLUME_REPLAY_ALLOWED_HOSTS || "").split(",").map((host) => host.trim().toLowerCase()).filter(Boolean);
     await page.route("**/*", async (route) => {
