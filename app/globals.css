@@ -616,3 +616,11 @@ button:disabled{opacity:.65;cursor:wait;transform:none}
 @keyframes replayFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .replay-root button:focus-visible,.replay-root a:focus-visible,.replay-root input:focus-visible,.replay-root select:focus-visible{outline:3px solid rgba(244,119,69,.35);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.replay-root .replay-step-card,.replay-root .replay-art-window,.replay-root .replay-art-video{animation:none!important}}
+
+
+/* Founder-first landing additions */
+.founder-note{display:flex;align-items:center;gap:12px;margin-top:26px;padding:18px 20px;border:1px solid rgba(145,240,211,.18);border-radius:14px;background:linear-gradient(110deg,rgba(145,240,211,.055),rgba(104,127,255,.055));color:#b5bfd4;font-size:12px;line-height:1.75}
+.founder-note .status-dot{flex:0 0 6px}
+.founder-note strong{color:#e9f0ff}
+.founder-note .text-link{margin-left:auto;white-space:nowrap;color:#c5cfff}
+@media(max-width:760px){.founder-note{align-items:flex-start;flex-wrap:wrap;padding:16px}.founder-note .text-link{margin-left:18px}}
