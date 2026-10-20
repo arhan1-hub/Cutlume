@@ -567,8 +567,8 @@ export default function DemoReplayPage() {
 
         <section className="replay-connection">
           <div className="replay-connection-icon"><LockKeyhole size={20} /></div>
-          <div className="replay-connection-copy"><span className="eyebrow">NEXT CONNECTION</span><h2>The replay service still needs to be connected.</h2><p>The Generate Demo button submits your workflow to the protected replay API. {workerConfigured ? "The server reports that a worker is configured; use a separate test app and dummy data." : "A separate worker URL, private token, and allowed test host still need to be configured for this preview deployment."} Until setup is complete, the page shows the worker setup error and you can still download the JSON recipe.</p></div>
-          <div className="replay-connection-status"><span className="replay-status-dot" /> {workerConfigured ? "Worker connected" : "Worker setup required"}</div>
+          <div className="replay-connection-copy"><span className="eyebrow">{workerConfigured ? "REPLAY SERVICE" : "SETUP REQUIRED"}</span><h2>{workerConfigured ? "The replay service is connected." : "Connect the replay service to run workflows."}</h2><p>{workerConfigured ? "The server reports that the replay worker is configured. Test with a staging app and dummy data first; compatibility with your app is not guaranteed until a complete replay succeeds." : "This preview cannot run a workflow yet. The server needs a worker URL, private token, and allowed test host. You can still download the JSON recipe and prepare your workflow."}</p></div>
+          <div className="replay-connection-status"><span className="replay-status-dot" /> {workerConfigured ? "Worker configured" : "Worker setup required"}</div>
         </section>
 
         <footer className="replay-footer"><Link className="brand replay-brand" href="/"><span className="brand-mark"><Clapperboard size={16} /></span><span>cutlume<span className="brand-period">.</span></span></Link><span>Build the workflow once. Refresh the demo when the product changes.</span><Link className="replay-footer-link" href="/">Launch studio <ArrowUpRight size={13} /></Link></footer>
