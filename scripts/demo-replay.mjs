@@ -62,7 +62,7 @@ function getLocator(step) {
   if (step.selector) return page.locator(step.selector).first();
   if (step.role) return page.getByRole(step.role, { name: step.name, exact: step.exact ?? false }).first();
   if (step.text) return page.getByText(step.text, { exact: step.exact ?? false }).first();
-  if (step.label) return page.getByLabel(step.label, { exact: step.exact ?? false }).first();
+  if (step.locatorLabel) return page.getByLabel(step.locatorLabel, { exact: step.exact ?? false }).first();
   if (step.placeholder) return page.getByPlaceholder(step.placeholder, { exact: step.exact ?? false }).first();
   if (step.testId) return page.getByTestId(step.testId).first();
   return null;
