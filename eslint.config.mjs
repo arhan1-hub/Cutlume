@@ -9,6 +9,12 @@ const compat = new FlatCompat({
 
 const eslintConfig = defineConfig([
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    rules: {
+      // JSX text with apostrophes is valid HTML; avoid false-positive copy lint failures.
+      "react/no-unescaped-entities": "off",
+    },
+  },
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
 ]);
 
