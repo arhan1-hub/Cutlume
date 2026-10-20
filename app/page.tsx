@@ -335,18 +335,18 @@ export default function Home() {
           </section>
 
           <section id="how-it-works" className="section workflow-section">
-            <div className="section-heading"><div><div className="eyebrow">A BETTER WAY TO SHOW YOUR WORK</div><h2>From rough recording<br />to <span className="gradient-text">launch-ready story.</span></h2></div><p>No timeline expertise required. Start with the product you already have and build a story around it.</p></div>
+            <div className="section-heading"><div><div className="eyebrow">A REPEATABLE RELEASE WORKFLOW</div><h2>From one setup<br />to <span className="gradient-text">every release.</span></h2></div><p>Keep the flow in your repo. Run it against a test environment after changes. Inspect the result before sharing it with customers.</p></div>
             <div className="workflow-grid">
-              <article className="workflow-card"><div className="step-number">01 <ArrowUpRight size={15} /></div><div className="workflow-icon"><Upload size={21} /></div><h3>Bring the raw material.</h3><p>Your actual product recording, plus a reference video that captures the kind of energy you're after.</p><div className="chip-row"><span>Screen recording</span><span>Reference</span></div></article>
-              <article className="workflow-card"><div className="step-number">02 <ArrowUpRight size={15} /></div><div className="workflow-icon"><WandSparkles size={21} /></div><h3>Find the feeling.</h3><p>Choose the mood, rhythm and transition language. Turn inspiration into a direction you can actually edit.</p><div className="chip-row"><span>Style guide</span><span>Story beats</span></div></article>
-              <article className="workflow-card"><div className="step-number">03 <ArrowUpRight size={15} /></div><div className="workflow-icon"><Film size={21} /></div><h3>Make it move.</h3><p>Shape the hook, product reveal, feature moment and closing scene. Keep the real product at the centre.</p><div className="chip-row"><span>Scene editor</span><span>Preview</span></div></article>
+              <article className="workflow-card"><div className="step-number">01 <ArrowUpRight size={15} /></div><div className="workflow-icon"><Workflow size={21} /></div><h3>Save the workflow.</h3><p>Describe the key actions in a JSON file your team can review and version alongside the app.</p><div className="chip-row"><span>JSON config</span><span>Git-friendly</span></div></article>
+              <article className="workflow-card"><div className="step-number">02 <ArrowUpRight size={15} /></div><div className="workflow-icon"><WandSparkles size={21} /></div><h3>Replay and inspect.</h3><p>Wait for streamed content, capture failures with reports, and adjust locators when the interface changes.</p><div className="chip-row"><span>Replay</span><span>Failure report</span></div></article>
+              <article className="workflow-card"><div className="step-number">03 <ArrowUpRight size={15} /></div><div className="workflow-icon"><Film size={21} /></div><h3>Share the fresh demo.</h3><p>Use readable captions, spotlights and a branded end card, then verify the exported video before posting.</p><div className="chip-row"><span>MP4 output</span><span>Branding</span></div></article>
             </div>
           </section>
 
           <section id="principles" className="manifesto">
             <div className="manifesto-symbol"><Layers3 size={23} /></div>
-            <div className="manifesto-copy"><div className="eyebrow">OUR CREATIVE PRINCIPLE</div><h2>Inspired by the feeling.<br /><span className="gradient-text">Faithful to the product.</span></h2><p>Reference videos are for learning rhythm, composition and mood—not copying someone else's work frame for frame. Your product stays the hero.</p></div>
-            <div className="manifesto-side"><span>01 — HONEST UI</span><span>02 — ORIGINAL MOTION</span><span>03 — FOUNDER FIRST</span></div>
+            <div className="manifesto-copy"><div className="eyebrow">OUR PRODUCT PRINCIPLE</div><h2>Useful first.<br /><span className="gradient-text">Polished second.</span></h2><p>Cutlume should save founders repeat work, not create another editing chore. Keep workflows inspectable, report failures honestly, and only share a video after the real app replay succeeds.</p></div>
+            <div className="manifesto-side"><span>01 — REPEATABLE FLOWS</span><span>02 — VISIBLE FAILURES</span><span>03 — MP4 WHEN VERIFIED</span></div>
           </section>
 
           <section className="closing-cta"><div className="closing-glow" /><div className="eyebrow">YOUR NEXT LAUNCH DESERVES A STORY</div><h2>Let's make it<br /><span className="gradient-text">feel like something.</span></h2><button className="button button-primary button-large" onClick={() => { setWorkspace(true); setStage(0); }}>Build a first draft <ArrowRight size={17} /></button><p>No AI credits required for this prototype. Your project stays in this browser.</p></section>
