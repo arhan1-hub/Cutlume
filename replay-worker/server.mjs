@@ -67,8 +67,15 @@ function validateWorkflow(value) {
   if (!Array.isArray(value.steps) || value.steps.length < 1 || value.steps.length > MAX_STEPS) throw new Error("Workflow must have between 1 and " + MAX_STEPS + " steps.");
   for (const [i, raw] of value.steps.entries()) {
     if (!raw || typeof raw !== "object" || Array.isArray(raw) || !ACTIONS.has(raw.action)) throw new Error("Step " + (i + 1) + " has an unsupported action.");
-    for (const key of ["label", "selector", "value", "text", "caption", "url", "file"]) {
+    for (const key of ["label", "selector", "value", "text", "caption", "url", "file", "role", "name", "placeholder", "testId", "locatorLabel"]) {
       if (raw[key] !== undefined && (typeof raw[key] !== "string" || raw[key].length > 2000)) throw new Error("Step " + (i + 1) + " has an invalid " + key + " field.");
+    }
+    if (raw.exact !== undefined && typeof raw.exact !== "boolean") throw new Error("Step " + (i + 1) + " has an invalid exact field.");
+    if (raw.trigger && typeof raw.trigger === "object" && !Array.isArray(raw.trigger)) {
+      for (const key of ["selector", "role", "name", "text", "label", "placeholder", "testId"]) {
+        if (raw.trigger[key] !== undefined && (typeof raw.trigger[key] !== "string" || raw.trigger[key].length > 2000)) throw new Error("Step " + (i + 1) + " has an invalid upload trigger " + key + " field.");
+      }
+      if (raw.trigger.exact !== undefined && typeof raw.trigger.exact !== "boolean") throw new Error("Step " + (i + 1) + " has an invalid upload trigger exact field.");
     }
     if (raw.action === "upload") {
       if (raw.file !== "./fixtures/demo-image.svg") throw new Error("Hosted uploads only support the packaged sample image.");
