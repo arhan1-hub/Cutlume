@@ -12,7 +12,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = Number(process.env.PORT || 8787);
 const TOKEN = process.env.CUTLUME_REPLAY_TOKEN || "";
 const HOSTS = [...new Set([...(process.env.CUTLUME_REPLAY_ALLOWED_HOSTS || "").split(",").map(x => x.trim().toLowerCase()).filter(Boolean), "flutter-ai-starter-kit-demo.dooettli.workers.dev"])];
-const DATA = path.resolve(process.env.CUTLUME_REPLAY_DATA_DIR || path.join(os.tmpdir(), "cutlume-jobs"));
+const DATA = path.resolve(process.env.CUTLUME_REPLAY_DATA_DIR || path.join(os.tmpdir(), "replaymint-jobs"));
 const MAX_BYTES = 64 * 1024;
 const MAX_STEPS = 30;
 const MAX_JOBS = 3;
@@ -116,7 +116,7 @@ async function execute(job) {
   const dir = path.join(DATA, job.id);
   await fs.mkdir(dir, { recursive: true });
   const configPath = path.join(dir, "workflow.json");
-  const config = { ...job.workflow, baseUrl: job.target, outputDir: dir, name: "cutlume-" + job.id };
+  const config = { ...job.workflow, baseUrl: job.target, outputDir: dir, name: "replaymint-" + job.id };
   await fs.writeFile(configPath, JSON.stringify(config), { mode: 0o600 });
   const proc = spawn(process.execPath, [path.join(ROOT, "scripts", "demo-replay.mjs"), "--config", configPath, "--headless", "--slow-mo", "0"], {
     cwd: ROOT, env: { ...process.env, CUTLUME_REPLAY_JOB_ID: job.id, CUTLUME_REPLAY_ENFORCE_HOST_ALLOWLIST: "1" }, stdio: ["ignore", "pipe", "pipe"],
@@ -206,7 +206,7 @@ async function handle(req, res) {
       if (job.status !== "completed" || !job.videoPath) return reply(res, 409, { error: "Video is not ready yet." });
       try {
         const stat = await fs.stat(job.videoPath);
-        res.writeHead(200, { "content-type": job.videoType, "content-length": stat.size, "cache-control": "private, no-store", "content-disposition": 'attachment; filename="cutlume-demo.' + (job.videoType === "video/mp4" ? "mp4" : "webm") + '"' });
+        res.writeHead(200, { "content-type": job.videoType, "content-length": stat.size, "cache-control": "private, no-store", "content-disposition": 'attachment; filename="replaymint-demo.' + (job.videoType === "video/mp4" ? "mp4" : "webm") + '"' });
         return fs.createReadStream(job.videoPath).pipe(res);
       } catch { return reply(res, 410, { error: "Recording expired." }); }
     }
@@ -217,6 +217,6 @@ async function handle(req, res) {
 await fs.mkdir(DATA, { recursive: true });
 setInterval(() => { void cleanupExpired(); }, 15 * 60 * 1000).unref();
 http.createServer((req, res) => { void handle(req, res).catch(() => { if (!res.headersSent) reply(res, 500, { error: "Internal worker error." }); else res.destroy(); }); }).listen(PORT, "0.0.0.0", () => {
-  console.log("Cutlume replay worker listening on port " + PORT);
+  console.log("replaymint replay worker listening on port " + PORT);
   if (!TOKEN || !HOSTS.length) console.warn("Worker is not configured; set CUTLUME_REPLAY_TOKEN and CUTLUME_REPLAY_ALLOWED_HOSTS.");
 });
