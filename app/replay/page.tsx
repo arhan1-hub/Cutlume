@@ -497,7 +497,11 @@ export default function DemoReplayPage() {
               {(jobStatus || jobError) && <div className={jobError ? "replay-job-status replay-job-error" : "replay-job-status"} role="status">
                 <strong>{jobError ? "Replay needs attention" : jobStatus === "completed" ? "Your demo is ready" : jobStatus === "failed" ? "Replay failed" : "Replay status"}</strong>
                 <span>{jobError || jobMessage}</span>
-                {jobStatus === "completed" && jobId && <a className="button button-primary full-width" href={`/api/replay/${jobId}/video`} download><Download size={15} /> Download recording</a>}
+                {jobStatus === "completed" && jobId && <>
+                  <a className="button button-primary full-width" href={`/api/replay/${jobId}/video`} download><Download size={15} /> Download recording</a>
+                  <Link className="button button-secondary full-width" href={`/review?jobId=${encodeURIComponent(jobId)}`}><ShieldCheck size={15} /> Review before publishing</Link>
+                  <small className="replay-field-hint">The replacement opens in Review Clips. Add the previous published clip and approve the new version before you manually publish it.</small>
+                </>}
                 {jobStatus === "failed" && <button className="button button-secondary full-width" onClick={() => { setJobId(null); setJobStatus(""); setJobError(""); setJobMessage(""); }}>Edit workflow and retry</button>}
               </div>}
               {downloaded && <div className="replay-inline-success" role="status"><Check size={14} /> demo-flow.json downloaded. Keep it private if it contains internal URLs.</div>}
