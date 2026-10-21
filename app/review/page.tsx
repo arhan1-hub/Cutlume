@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, CheckCircle2, CircleAlert, Clapperboard, FileVideo2, Play, RotateCcw, ShieldCheck, Volume2 } from "lucide-react";
 
 type ReviewItem = { id: string; title: string; detail: string; approved: boolean };
