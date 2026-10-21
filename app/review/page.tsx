@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, CheckCircle2, CircleAlert, Clapperboard, FileVideo2, Play, RotateCcw, ShieldCheck, Volume2 } from "lucide-react";
 
 type ReviewItem = { id: string; title: string; detail: string; approved: boolean };
@@ -22,6 +22,12 @@ export default function DemoReviewPage() {
   const [items, setItems] = useState(initialItems);
   const [notes, setNotes] = useState("");
   const [reviewTitle, setReviewTitle] = useState("Demo refresh review");
+  const [visualDiff, setVisualDiff] = useState("");
+  const oldVideoRef = useRef<HTMLVideoElement>(null);
+  const newVideoRef = useRef<HTMLVideoElement>(null);
+  const oldFrameRef = useRef<HTMLCanvasElement>(null);
+  const newFrameRef = useRef<HTMLCanvasElement>(null);
+  const diffFrameRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => () => { if (oldUrl) URL.revokeObjectURL(oldUrl); if (newUrl) URL.revokeObjectURL(newUrl); }, [oldUrl, newUrl]);
 
@@ -36,6 +42,39 @@ export default function DemoReviewPage() {
     const url = URL.createObjectURL(file);
     if (which === "old") { setOldUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return url; }); setOldName(file.name); }
     else { setNewUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return url; }); setNewName(file.name); }
+  }
+
+  function compareCurrentFrames() {
+    const oldVideo = oldVideoRef.current;
+    const newVideo = newVideoRef.current;
+    const oldCanvas = oldFrameRef.current;
+    const newCanvas = newFrameRef.current;
+    const diffCanvas = diffFrameRef.current;
+    if (!oldVideo || !newVideo || !oldCanvas || !newCanvas || !diffCanvas || oldVideo.readyState < 2 || newVideo.readyState < 2) {
+      setVisualDiff("Choose both clips and play or scrub each one until a frame is ready, then compare again.");
+      return;
+    }
+    const width = 480;
+    const height = 270;
+    for (const canvas of [oldCanvas, newCanvas, diffCanvas]) { canvas.width = width; canvas.height = height; }
+    const oldContext = oldCanvas.getContext("2d", { willReadFrequently: true });
+    const newContext = newCanvas.getContext("2d", { willReadFrequently: true });
+    const diffContext = diffCanvas.getContext("2d");
+    if (!oldContext || !newContext || !diffContext) { setVisualDiff("This browser could not prepare the frame comparison."); return; }
+    oldContext.drawImage(oldVideo, 0, 0, width, height);
+    newContext.drawImage(newVideo, 0, 0, width, height);
+    const before = oldContext.getImageData(0, 0, width, height);
+    const after = newContext.getImageData(0, 0, width, height);
+    const output = diffContext.createImageData(width, height);
+    let changed = 0;
+    for (let i = 0; i < before.data.length; i += 4) {
+      const delta = (Math.abs(before.data[i] - after.data[i]) + Math.abs(before.data[i + 1] - after.data[i + 1]) + Math.abs(before.data[i + 2] - after.data[i + 2])) / 3;
+      if (delta > 28) { changed++; output.data[i] = 255; output.data[i + 1] = 91; output.data[i + 2] = 74; output.data[i + 3] = 220; }
+      else { const gray = Math.round((before.data[i] + before.data[i + 1] + before.data[i + 2]) / 3 * 0.22); output.data[i] = gray; output.data[i + 1] = gray; output.data[i + 2] = gray; output.data[i + 3] = 255; }
+    }
+    diffContext.putImageData(output, 0, 0);
+    const percent = changed / (width * height) * 100;
+    setVisualDiff(`${percent.toFixed(1)}% of pixels differ between the frames currently shown. This is a visual signal only—not proof that product behavior, permissions, or narration match.`);
   }
 
   function toggleItem(id: string) {
@@ -82,14 +121,21 @@ export default function DemoReviewPage() {
             <div className="review-clip-head"><span className="review-clip-number">01</span><div><h2>Previous clip</h2><p>The version you already published</p></div></div>
             <label className="review-upload" htmlFor="old-clip"><FileVideo2 size={21} /><span><strong>{oldName || "Choose previous video"}</strong><small>MP4, WebM, or another browser-playable video</small></span><span className="review-upload-action">Browse</span></label>
             <input className="review-file-input" id="old-clip" type="file" accept="video/*" onChange={(e) => chooseFile("old", e.target.files?.[0])} />
-            {oldUrl ? <video className="review-video" src={oldUrl} controls playsInline preload="metadata" /> : <div className="review-video-empty"><Play size={25} /><span>Previous clip preview</span></div>}
+            {oldUrl ? <video ref={oldVideoRef} className="review-video" src={oldUrl} controls playsInline preload="metadata" /> : <div className="review-video-empty"><Play size={25} /><span>Previous clip preview</span></div>}
           </article>
           <article className="review-clip-card review-clip-new">
             <div className="review-clip-head"><span className="review-clip-number">02</span><div><h2>Replacement clip</h2><p>The refreshed recording to publish</p></div></div>
             <label className="review-upload" htmlFor="new-clip"><FileVideo2 size={21} /><span><strong>{newName || "Choose replacement video"}</strong><small>Use the new export you want to publish</small></span><span className="review-upload-action">Browse</span></label>
             <input className="review-file-input" id="new-clip" type="file" accept="video/*" onChange={(e) => chooseFile("new", e.target.files?.[0])} />
-            {newUrl ? <video className="review-video" src={newUrl} controls playsInline preload="metadata" /> : <div className="review-video-empty"><Play size={25} /><span>Replacement clip preview</span></div>}
+            {newUrl ? <video ref={newVideoRef} className="review-video" src={newUrl} controls playsInline preload="metadata" /> : <div className="review-video-empty"><Play size={25} /><span>Replacement clip preview</span></div>}
           </article>
+        </section>
+        <section className="review-section review-visual-diff">
+          <div className="review-section-heading"><div><p className="eyebrow">FRAME COMPARISON</p><h2>Spot visual changes</h2></div><Clapperboard size={21} /></div>
+          <p className="review-help">Pause or scrub both videos to the moments you want to compare, then capture the current frames. Red areas mark pixel differences. Animated content, different scroll positions, and timing can create differences even when nothing is broken.</p>
+          <button type="button" className="button button-secondary" onClick={compareCurrentFrames}>Compare current frames</button>
+          {visualDiff && <p className="review-diff-result" role="status">{visualDiff}</p>}
+          <div className="review-diff-grid"><div><span>Previous frame</span><canvas ref={oldFrameRef} aria-label="Previous clip frame" /></div><div><span>Replacement frame</span><canvas ref={newFrameRef} aria-label="Replacement clip frame" /></div><div><span>Difference overlay</span><canvas ref={diffFrameRef} aria-label="Pixel difference overlay" /></div></div>
         </section>
         <section className="review-section">
           <div className="review-section-heading"><div><p className="eyebrow">SCRIPT CHECK</p><h2>Read the narration with the new clip</h2></div><Volume2 size={21} /></div>
