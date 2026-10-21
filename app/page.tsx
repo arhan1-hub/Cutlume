@@ -266,6 +266,7 @@ export default function Home() {
         <nav className="top-nav" aria-label="Main navigation">
           <a href="/motion">Motion library</a>
           <a href="/replay">Demo replay</a>
+          <a href="/pricing">Pilot pricing</a>
           <a href="#how-it-works">How it works</a>
           <a href="#principles">The approach</a>
         </nav>
