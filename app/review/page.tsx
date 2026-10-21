@@ -29,7 +29,8 @@ export default function DemoReviewPage() {
   const newFrameRef = useRef<HTMLCanvasElement>(null);
   const diffFrameRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => () => { if (oldUrl) URL.revokeObjectURL(oldUrl); if (newUrl) URL.revokeObjectURL(newUrl); }, [oldUrl, newUrl]);
+  useEffect(() => () => { if (oldUrl) URL.revokeObjectURL(oldUrl); }, [oldUrl]);
+  useEffect(() => () => { if (newUrl) URL.revokeObjectURL(newUrl); }, [newUrl]);
 
   const approvedCount = items.filter((item) => item.approved).length;
   const canApprove = approvedCount === items.length && Boolean(oldUrl) && Boolean(newUrl) && narration.trim().length > 0;
@@ -94,7 +95,7 @@ export default function DemoReviewPage() {
     };
     const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }));
     const a = document.createElement("a"); a.href = url; a.download = "cutlume-review-report.json"; a.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   return (
