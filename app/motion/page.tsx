@@ -122,7 +122,7 @@ export default function MotionStudioPage() {
       }
       setExportProgress(8);
       const { getBlob } = await renderMediaOnWeb({
-        composition: { component: LaunchFilmComposition, durationInFrames, fps, width: dimensions.width, height: dimensions.height, id: "cutlume-motion-studio", defaultProps: { scenes: renderScenes, mood, productImage, productVideo, projectName: productUrl ? (() => { try { return new URL(productUrl).hostname.replace(/^www\\./, ""); } catch { return "Your product"; } })() : "Your product" } },
+        composition: { component: LaunchFilmComposition, durationInFrames, fps, width: dimensions.width, height: dimensions.height, id: "replaymint-motion-studio", defaultProps: { scenes: renderScenes, mood, productImage, productVideo, projectName: productUrl ? (() => { try { return new URL(productUrl).hostname.replace(/^www\\./, ""); } catch { return "Your product"; } })() : "Your product" } },
         inputProps: { scenes: renderScenes, mood, productImage, productVideo, projectName: productUrl ? (() => { try { return new URL(productUrl).hostname.replace(/^www\\./, ""); } catch { return "Your product"; } })() : "Your product" },
         container: "mp4",
         videoCodec: "h264",
@@ -137,7 +137,7 @@ export default function MotionStudioPage() {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = "cutlume-motion-launch.mp4";
+      anchor.download = "replaymint-motion-launch.mp4";
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
@@ -173,7 +173,7 @@ export default function MotionStudioPage() {
       `}</style>
 
       <header className="m-top">
-        <Link href="/" className="m-brand"><span className="m-mark"><Clapperboard size={18}/></span>cutlume<span style={{color:"#9c8aff"}}>.</span></Link>
+        <Link href="/" className="m-brand"><span className="m-mark"><Clapperboard size={18}/></span>replaymint<span style={{color:"#9c8aff"}}>.</span></Link>
         <nav className="m-nav"><Link href="/">Launch studio</Link><Link href="/replay">Demo replay</Link><span style={{color:"#d5caff"}}>Motion library</span></nav>
         <Link href="/" className="m-btn"><ArrowLeft size={14}/> Studio home</Link>
       </header>

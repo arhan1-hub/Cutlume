@@ -147,7 +147,7 @@ export default function Home() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = "cutlume-storyboard.json";
+    anchor.download = "replaymint-storyboard.json";
     anchor.click();
     URL.revokeObjectURL(url);
   }
@@ -202,7 +202,7 @@ export default function Home() {
           fps,
           width: dimensions.width,
           height: dimensions.height,
-          id: "cutlume-launch-film",
+          id: "replaymint-launch-film",
           defaultProps: { scenes, mood, projectName },
         },
         inputProps: { scenes, mood, projectName },
@@ -221,11 +221,11 @@ export default function Home() {
       }
 
       const safeName =
-        (projectName || "cutlume-launch-film")
+        (projectName || "replaymint-launch-film")
           .trim()
           .replace(/[^a-zA-Z0-9-_]+/g, "-")
           .replace(/^-+|-+$/g, "")
-          .toLowerCase() || "cutlume-launch-film";
+          .toLowerCase() || "replaymint-launch-film";
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
@@ -261,7 +261,7 @@ export default function Home() {
       <header className="topbar">
         <button className="brand" onClick={resetProject} aria-label="ReplayMint home">
           <span className="brand-mark"><Clapperboard size={19} strokeWidth={2.2} /></span>
-          <span>cutlume<span className="brand-period">.</span></span>
+          <span>replaymint<span className="brand-period">.</span></span>
         </button>
         <nav className="top-nav" aria-label="Main navigation">
           <a href="/motion">Motion library</a>
@@ -353,7 +353,7 @@ export default function Home() {
 
           <section className="closing-cta"><div className="closing-glow" /><div className="eyebrow">YOUR NEXT LAUNCH DESERVES A STORY</div><h2>Let's make it<br /><span className="gradient-text">feel like something.</span></h2><button className="button button-primary button-large" onClick={() => { setWorkspace(true); setStage(0); }}>Build a first draft <ArrowRight size={17} /></button><p>No AI credits required for this prototype. Your project stays in this browser.</p></section>
 
-          <footer className="footer"><button className="brand brand-footer" onClick={resetProject}><span className="brand-mark"><Clapperboard size={16} /></span><span>cutlume<span className="brand-period">.</span></span></button><span>Made for the work behind the launch.</span><button className="footer-feedback" onClick={() => setShowFeedback(true)}>Help shape the product <ArrowUpRight size={14} /></button></footer>
+          <footer className="footer"><button className="brand brand-footer" onClick={resetProject}><span className="brand-mark"><Clapperboard size={16} /></span><span>replaymint<span className="brand-period">.</span></span></button><span>Made for the work behind the launch.</span><button className="footer-feedback" onClick={() => setShowFeedback(true)}>Help shape the product <ArrowUpRight size={14} /></button></footer>
         </>
       ) : (
         <section className="studio-shell">
@@ -390,7 +390,7 @@ export default function Home() {
         </section>
       )}
 
-      {showFeedback && <div className="modal-backdrop" role="presentation" onClick={() => setShowFeedback(false)}><div className="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedback-title" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowFeedback(false)} aria-label="Close feedback"><X size={18} /></button><div className="eyebrow">HELP SHAPE CUTLUME</div><h2 id="feedback-title">What should we make better?</h2><p>This early build doesn't send feedback to a server. You can copy your notes and share them with the maker.</p><textarea className="text-input text-area feedback-area" rows={4} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="What felt useful, confusing, or missing?" /><button className="button button-primary full-width" onClick={() => { const text = `ReplayMint feedback\n\n${feedback}`; navigator.clipboard?.writeText(text).then(() => window.alert("Feedback copied. Share it with the maker!")).catch(() => window.alert(text)); setShowFeedback(false); }}>Copy feedback <ArrowUpRight size={15} /></button></div></div>}
+      {showFeedback && <div className="modal-backdrop" role="presentation" onClick={() => setShowFeedback(false)}><div className="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedback-title" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowFeedback(false)} aria-label="Close feedback"><X size={18} /></button><div className="eyebrow">HELP SHAPE REPLAYMINT</div><h2 id="feedback-title">What should we make better?</h2><p>This early build doesn't send feedback to a server. You can copy your notes and share them with the maker.</p><textarea className="text-input text-area feedback-area" rows={4} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="What felt useful, confusing, or missing?" /><button className="button button-primary full-width" onClick={() => { const text = `ReplayMint feedback\n\n${feedback}`; navigator.clipboard?.writeText(text).then(() => window.alert("Feedback copied. Share it with the maker!")).catch(() => window.alert(text)); setShowFeedback(false); }}>Copy feedback <ArrowUpRight size={15} /></button></div></div>}
     </main>
   );
 }

@@ -126,7 +126,7 @@ export default function DemoReplayPage() {
   const [captionFont, setCaptionFont] = useState("Inter, ui-sans-serif, system-ui, sans-serif");
   const [captionScale, setCaptionScale] = useState(100);
   const [captionPosition, setCaptionPosition] = useState("auto");
-  const [brandName, setBrandName] = useState("CUTLUME");
+  const [brandName, setBrandName] = useState("REPLAYMINT");
   const [endHeadline, setEndHeadline] = useState("Your product evolves. Your demo keeps up.");
 
   useEffect(() => {
@@ -170,7 +170,7 @@ export default function DemoReplayPage() {
   }, [baseUrl]);
 
   const config = useMemo(() => ({
-    name: projectName.trim().toLowerCase().replace(/[^a-z0-9-_]+/g, "-") || "cutlume-demo",
+    name: projectName.trim().toLowerCase().replace(/[^a-z0-9-_]+/g, "-") || "replaymint-demo",
     baseUrl: baseUrl.trim(),
     outputDir: "recordings",
     viewport: { width: 1280, height: 800 },
@@ -390,7 +390,7 @@ export default function DemoReplayPage() {
       <header className="topbar replay-topbar">
         <Link className="brand replay-brand" href="/" aria-label="ReplayMint home">
           <span className="brand-mark"><Clapperboard size={19} strokeWidth={2.2} /></span>
-          <span>cutlume<span className="brand-period">.</span></span>
+          <span>replaymint<span className="brand-period">.</span></span>
         </Link>
         <nav className="top-nav replay-nav" aria-label="Main navigation">
           <Link href="/">Launch studio</Link>
@@ -571,7 +571,7 @@ export default function DemoReplayPage() {
           <div className="replay-connection-status"><span className="replay-status-dot" /> {workerConfigured ? "Worker configured" : "Worker setup required"}</div>
         </section>
 
-        <footer className="replay-footer"><Link className="brand replay-brand" href="/"><span className="brand-mark"><Clapperboard size={16} /></span><span>cutlume<span className="brand-period">.</span></span></Link><span>Build the workflow once. Refresh the demo when the product changes.</span><Link className="replay-footer-link" href="/">Launch studio <ArrowUpRight size={13} /></Link></footer>
+        <footer className="replay-footer"><Link className="brand replay-brand" href="/"><span className="brand-mark"><Clapperboard size={16} /></span><span>replaymint<span className="brand-period">.</span></span></Link><span>Build the workflow once. Refresh the demo when the product changes.</span><Link className="replay-footer-link" href="/">Launch studio <ArrowUpRight size={13} /></Link></footer>
       </div>
     </main>
   );

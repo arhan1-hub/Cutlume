@@ -94,7 +94,7 @@ export default function DemoReviewPage() {
       limitations: "This report records manual review only. ReplayMint has not automatically verified semantic equivalence between clips or narration.",
     };
     const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }));
-    const a = document.createElement("a"); a.href = url; a.download = "cutlume-review-report.json"; a.click();
+    const a = document.createElement("a"); a.href = url; a.download = "replaymint-review-report.json"; a.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
@@ -102,7 +102,7 @@ export default function DemoReviewPage() {
     <main className="app-root replay-root review-root">
       <div className="ambient ambient-one" /><div className="ambient ambient-two" />
       <header className="topbar replay-topbar">
-        <Link className="brand replay-brand" href="/" aria-label="ReplayMint home"><span className="brand-mark"><Clapperboard size={19} /></span><span>cutlume<span className="brand-period">.</span></span></Link>
+        <Link className="brand replay-brand" href="/" aria-label="ReplayMint home"><span className="brand-mark"><Clapperboard size={19} /></span><span>replaymint<span className="brand-period">.</span></span></Link>
         <nav className="top-nav replay-nav" aria-label="Main navigation"><Link href="/">Launch studio</Link><Link href="/replay">Demo replay</Link><span className="replay-nav-active">Review clips</span><Link href="/pricing">Pilot pricing</Link></nav>
       </header>
       <div className="review-shell">
