@@ -14,6 +14,7 @@ import {
   LockKeyhole,
   Plus,
   Sparkles,
+  ShieldCheck,
   Trash2,
   Video,
   Workflow,
