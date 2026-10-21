@@ -373,7 +373,7 @@ button:disabled{opacity:.65;cursor:wait;transform:none}
 
 /* Replay workspace redesign — calm builder surfaces with warm orange accents.
    Inspired by MailCheap's clear typography and Base44's focused editor layout;
-   intentionally uses Cutlume's own component structure and visual language. */
+   intentionally uses ReplayMint's own component structure and visual language. */
 .replay-root{
   --replay-ink:#181817;
   --replay-muted:#77766f;

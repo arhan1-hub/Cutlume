@@ -229,7 +229,7 @@ export default function DemoReplayPage() {
       brand: brandName.trim() || "YOUR BRAND",
       headline: endHeadline.trim() || "Your product evolves. Your demo keeps up.",
       subheadline: "Replay your workflow. Capture a fresh demo. Share it.",
-      cta: "Make your next demo with Cutlume",
+      cta: "Make your next demo with ReplayMint",
     },
   }), [projectName, baseUrl, steps, accentColor, captionFont, captionScale, captionPosition, brandName, endHeadline]);
 
@@ -307,7 +307,7 @@ export default function DemoReplayPage() {
           "waitForStableText", "wait", "upload", "screenshot",
         ]);
         if (typeof parsed.baseUrl !== "string" || !Array.isArray(parsed.steps) || parsed.steps.length === 0) {
-          throw new Error("This file doesn’t look like a Cutlume workflow. Choose a demo-flow.json exported from Cutlume.");
+          throw new Error("This file doesn’t look like a ReplayMint workflow. Choose a demo-flow.json exported from ReplayMint.");
         }
         const importedSteps: ReplayStep[] = parsed.steps.map((rawStep, index) => {
           if (!rawStep || typeof rawStep !== "object") throw new Error("One workflow step is invalid.");
@@ -362,7 +362,7 @@ export default function DemoReplayPage() {
       }
     };
     reader.onerror = () => {
-      setJobError("Could not read that file. Try exporting a fresh demo-flow.json from Cutlume.");
+      setJobError("Could not read that file. Try exporting a fresh demo-flow.json from ReplayMint.");
       setJobStatus("failed");
     };
     reader.readAsText(file);
@@ -388,7 +388,7 @@ export default function DemoReplayPage() {
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <header className="topbar replay-topbar">
-        <Link className="brand replay-brand" href="/" aria-label="Cutlume home">
+        <Link className="brand replay-brand" href="/" aria-label="ReplayMint home">
           <span className="brand-mark"><Clapperboard size={19} strokeWidth={2.2} /></span>
           <span>cutlume<span className="brand-period">.</span></span>
         </Link>
@@ -403,13 +403,13 @@ export default function DemoReplayPage() {
       </header>
 
       <div className="replay-page">
-        <Link href="/" className="replay-back"><ArrowLeft size={14} /> Back to Cutlume</Link>
+        <Link href="/" className="replay-back"><ArrowLeft size={14} /> Back to ReplayMint</Link>
 
         <section className="replay-hero">
           <div className="replay-hero-copy">
             <div className="eyebrow"><Workflow size={14} /> THE REPLAY WORKSPACE</div>
             <h1>Your product changes.<br /><span className="gradient-text">Your demo catches up.</span></h1>
-            <p>Describe the browser steps once. Keep the captions and visual emphasis with the workflow. When the replay service is connected, Cutlume can turn the recipe into a fresh recording.</p>
+            <p>Describe the browser steps once. Keep the captions and visual emphasis with the workflow. When the replay service is connected, ReplayMint can turn the recipe into a fresh recording.</p>
             <div className="replay-hero-pills">
               <span><Check size={13} /> Reusable workflow</span>
               <span><Check size={13} /> Captions & spotlights</span>
@@ -505,7 +505,7 @@ export default function DemoReplayPage() {
             </div>
 
             <div className="replay-steps-panel">
-              <div className="replay-steps-heading"><div><span className="eyebrow">THE RECIPE</span><h3>What should Cutlume do?</h3></div><button className="button button-secondary button-small" onClick={addStep}><Plus size={14} /> Add step</button></div>
+              <div className="replay-steps-heading"><div><span className="eyebrow">THE RECIPE</span><h3>What should ReplayMint do?</h3></div><button className="button button-secondary button-small" onClick={addStep}><Plus size={14} /> Add step</button></div>
               <div className="replay-step-list">
                 {steps.map((step, index) => (
                   <article className="replay-step-card" key={step.id}>
@@ -536,7 +536,7 @@ export default function DemoReplayPage() {
                         <><label className="field-label" htmlFor={`locator-text-${step.id}`}>VISIBLE TEXT TARGET</label><input id={`locator-text-${step.id}`} className="text-input" value={step.locatorText || ""} onChange={(event) => updateStep(step.id, { locatorText: event.target.value })} placeholder="Attach image" /></>
                         <label className="replay-check-row"><input type="checkbox" checked={Boolean(step.exact)} onChange={(event) => updateStep(step.id, { exact: event.target.checked })} /><span className="replay-check-box"><Check size={12} /></span><span>Match text exactly</span></label>
                       </details>
-                      {step.action === "upload" && <p className="replay-field-hint">Uses Cutlume’s bundled sample image only. Arbitrary file uploads are disabled in the hosted prototype.</p>}
+                      {step.action === "upload" && <p className="replay-field-hint">Uses ReplayMint’s bundled sample image only. Arbitrary file uploads are disabled in the hosted prototype.</p>}
                     </>}
                     {(step.action === "fill" || step.action === "press" || step.action === "waitForText" || step.action === "waitForStableText" || step.action === "wait") && <>
                       <label className="field-label" htmlFor={`value-${step.id}`}>{step.action === "wait" ? "PAUSE LENGTH (MS)" : step.action === "fill" ? "TEXT TO TYPE" : step.action === "press" ? "KEY TO PRESS" : "EXPECTED TEXT (OPTIONAL)"}</label>

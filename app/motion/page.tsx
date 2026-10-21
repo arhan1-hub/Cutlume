@@ -210,7 +210,7 @@ export default function MotionStudioPage() {
         </section>
         <section className="m-workspace">
           <div className="m-panel">
-            <div className="m-panel-head"><div><h2><Sparkles size={14} style={{display:"inline",marginRight:7,color:"#b9aaff"}}/>Creative direction</h2><p>Tell Cutlume what you are trying to make.</p></div><span className="m-count">01 / INPUT</span></div>
+            <div className="m-panel-head"><div><h2><Sparkles size={14} style={{display:"inline",marginRight:7,color:"#b9aaff"}}/>Creative direction</h2><p>Tell ReplayMint what you are trying to make.</p></div><span className="m-count">01 / INPUT</span></div>
             <div className="m-panel-body">
               <div className="m-mode" role="tablist" aria-label="Creation mode">
                 <button className={mode === "ai" ? "active" : ""} onClick={() => setMode("ai")} role="tab" aria-selected={mode === "ai"}><Sparkles size={13} style={{display:"inline",marginRight:6}}/>Guided draft</button>
@@ -218,7 +218,7 @@ export default function MotionStudioPage() {
               </div>
               <label className="m-label" htmlFor="product-url">PRODUCT WEBSITE (OPTIONAL)</label>
               <input className="m-input" id="product-url" type="url" value={productUrl} onChange={e => setProductUrl(e.target.value)} placeholder="https://your-product.com"/>
-              <p className="m-hint">Used to label your video. Cutlume does not import the website automatically yet.</p>
+              <p className="m-hint">Used to label your video. ReplayMint does not import the website automatically yet.</p>
               <label className="m-label" htmlFor="product-image">REAL PRODUCT SCREENSHOT</label>
               <input className="m-input" id="product-image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e => { const file = e.target.files?.[0]; if (!file) return; if (!file.type.startsWith("image/")) { setNotice("Please choose a PNG, JPEG, WebP or GIF image."); e.target.value = ""; return; } if (file.size > 8 * 1024 * 1024) { setNotice("Please choose an image smaller than 8 MB so export stays responsive."); e.target.value = ""; return; } if (productImage) URL.revokeObjectURL(productImage); if (productVideo) URL.revokeObjectURL(productVideo); const next = URL.createObjectURL(file); setProductImage(next); setProductImageName(file.name); setProductVideo(""); setProductVideoName(""); setNotice("Screenshot added. It will appear in your exported MP4."); e.target.value = ""; }}/>
               {productImage && <div style={{display:"flex",alignItems:"center",gap:12,marginTop:10,padding:10,border:"1px solid #ffffff1b",borderRadius:10,background:"#ffffff05"}}><img src={productImage} alt="Selected product screenshot" style={{width:88,height:58,objectFit:"cover",borderRadius:6,border:"1px solid #ffffff20"}}/><div style={{minWidth:0,flex:1}}><div style={{fontSize:11,fontWeight:700,overflowWrap:"anywhere"}}>{productImageName}</div><div style={{fontSize:10,color:"#a2a4bb",marginTop:4}}>Included in the MP4 preview and export</div></div><button type="button" className="m-icon-btn" aria-label="Remove screenshot" onClick={() => {URL.revokeObjectURL(productImage);setProductImage("");setProductImageName("");}}> <X size={13}/> </button></div>}
