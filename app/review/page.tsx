@@ -33,6 +33,42 @@ export default function DemoReviewPage() {
   useEffect(() => () => { if (oldUrl) URL.revokeObjectURL(oldUrl); }, [oldUrl]);
   useEffect(() => () => { if (newUrl) URL.revokeObjectURL(newUrl); }, [newUrl]);
 
+  // When arriving from a successful replay job, load that generated clip directly
+  // into the local review workspace. The previous/published clip is still user-selected.
+  useEffect(() => {
+    const jobId = new URLSearchParams(window.location.search).get("jobId");
+    if (!jobId || !/^[a-zA-Z0-9_-]{1,128}$/.test(jobId)) return;
+    let cancelled = false;
+    let objectUrl = "";
+    setVisualDiff("Loading the completed replay into this local review session…");
+    fetch("/api/replay/" + encodeURIComponent(jobId) + "/video", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.error || "Could not load the replay video.");
+        }
+        return response.blob();
+      })
+      .then((blob) => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setNewUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return objectUrl; });
+        setNewName("ReplayMint refreshed demo");
+        setApprovedForPublish(false);
+        setVisualDiff("New replay loaded. Choose the previous published clip, then compare and review before publishing.");
+      })
+      .catch((error) => {
+        if (!cancelled) setVisualDiff(error instanceof Error ? error.message : "Could not load the replay video.");
+      });
+    return () => {
+      cancelled = true;
+      // The component's URL cleanup effect owns URLs once state has adopted them.
+      if (objectUrl && cancelled && !newUrl) URL.revokeObjectURL(objectUrl);
+    };
+  // This runs only when the review page mounts; changing the selected clip does not refetch the job.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const approvedCount = items.filter((item) => item.approved).length;
   const canApprove = approvedCount === items.length && Boolean(oldUrl) && Boolean(newUrl) && narration.trim().length > 0;
   const status = approvedForPublish
