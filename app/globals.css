@@ -624,3 +624,35 @@ button:disabled{opacity:.65;cursor:wait;transform:none}
 .founder-note strong{color:#e9f0ff}
 .founder-note .text-link{margin-left:auto;white-space:nowrap;color:#c5cfff}
 @media(max-width:760px){.founder-note{align-items:flex-start;flex-wrap:wrap;padding:16px}.founder-note .text-link{margin-left:18px}}
+
+
+/* Founding pilot checkout */
+.pricing-root{min-height:100vh;padding:38px 22px 64px;background:radial-gradient(ellipse at 70% 12%,rgba(104,127,255,.14),transparent 32%),radial-gradient(ellipse at 12% 78%,rgba(173,139,255,.09),transparent 30%),var(--bg);color:var(--text)}
+.pricing-shell{max-width:1040px;margin:0 auto}
+.pricing-back{display:inline-flex;align-items:center;gap:9px;color:#aeb8d0;font-size:12px;transition:color .2s}
+.pricing-back:hover{color:white}
+.pricing-heading{max-width:690px;margin:78px auto 0;text-align:center}
+.pricing-eyebrow{font:10px var(--mono);letter-spacing:2px;text-transform:uppercase;color:#a6b1ff}
+.pricing-heading h1,.checkout-result h1{font:800 clamp(36px,6vw,62px)/1.1 var(--display);letter-spacing:-2.8px;margin:18px 0}
+.pricing-heading h1 span{background:linear-gradient(100deg,#aebaff,#c09cff);background-clip:text;color:transparent}
+.pricing-heading>p:last-child{max-width:610px;margin:0 auto;color:#9ea7bd;font-size:14px;line-height:1.9}
+.pricing-card{max-width:650px;margin:42px auto 0;padding:30px;border:1px solid rgba(147,160,224,.23);border-radius:19px;background:linear-gradient(145deg,rgba(21,26,42,.96),rgba(12,15,25,.98));box-shadow:0 30px 90px rgba(0,0,0,.25)}
+.pricing-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.pricing-card h2{font:700 21px var(--display);letter-spacing:-.5px;margin:0 0 9px}
+.pricing-card-top p{font-size:12px;line-height:1.8;color:#9ea7bd;margin:0;max-width:390px}
+.pricing-badge{flex-shrink:0;border:1px solid rgba(173,139,255,.3);background:rgba(173,139,255,.1);border-radius:99px;padding:7px 10px;color:#d3c4ff;font:9px var(--mono)}
+.pricing-rule{height:1px;background:var(--line);margin:24px 0}
+.pricing-card ul{list-style:none;padding:0;margin:0;display:grid;gap:15px}
+.pricing-card li{display:flex;align-items:flex-start;gap:11px;font-size:12px;line-height:1.6;color:#dce1f1}
+.pricing-card li svg{flex-shrink:0;color:#9cf0d7;margin-top:1px}
+.pricing-checkout{margin-top:28px;min-height:48px}
+.pricing-checkout:disabled{opacity:.6;cursor:wait}
+.pricing-trust{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-top:17px;color:#818ca5;font-size:10px}
+.pricing-trust span{display:inline-flex;align-items:center;gap:6px}
+.pricing-error{padding:12px 14px;margin:15px 0 0;border:1px solid rgba(255,196,108,.24);border-radius:10px;background:rgba(255,196,108,.08);color:#ffdaa2;font-size:12px}
+.pricing-disclaimer{max-width:650px;margin:18px auto 0;text-align:center;color:#707b94;font-size:10px;line-height:1.8}
+.checkout-result{max-width:620px;margin:13vh auto 0;padding:44px 30px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(21,26,42,.96),rgba(12,15,25,.98));text-align:center}
+.checkout-result-icon{color:#91f0d3;margin:0 auto 25px}
+.checkout-result h1{font-size:clamp(30px,5vw,45px);letter-spacing:-1.8px}
+.checkout-result>p:not(.pricing-eyebrow){color:#9ea7bd;font-size:13px;line-height:1.9;margin:16px auto 25px;max-width:470px}
+@media(max-width:600px){.pricing-root{padding:24px 16px 44px}.pricing-heading{margin-top:55px}.pricing-card{padding:22px 18px}.pricing-card-top{display:block}.pricing-badge{display:inline-block;margin-top:14px}.pricing-trust{align-items:flex-start;flex-direction:column;padding-left:3px}.checkout-result{padding:32px 20px}}
