@@ -267,6 +267,7 @@ export default function Home() {
           <a href="/motion">Motion library</a>
           <a href="/replay">Demo replay</a>
           <a href="/pricing">Pilot pricing</a>
+          <a href="/review">Review clips</a>
           <a href="#how-it-works">How it works</a>
           <a href="#principles">The approach</a>
         </nav>
