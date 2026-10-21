@@ -1,8 +1,8 @@
-# Cutlume
+# ReplayMint
 
 **Reusable product-demo recordings for indie founders — early prototype.**
 
-Cutlume is exploring two related workflows: creating launch-style videos and replaying browser demos after a product changes. The demo-replay prototype is a local Node.js + Playwright script, separate from the hosted creative studio.
+ReplayMint is exploring two related workflows: creating launch-style videos and replaying browser demos after a product changes. The demo-replay prototype is a local Node.js + Playwright script, separate from the hosted creative studio.
 
 ## Demo replay prototype
 
@@ -130,4 +130,4 @@ npm run dev
 
 Open the local URL shown by Next.js.
 
-Project settings and storyboard are stored in the current browser using localStorage. The prototype has no accounts, cloud uploads, or cross-device project sync. Cutlume is an early validation prototype; its brand name has not been legally cleared.
+Project settings and storyboard are stored in the current browser using localStorage. The prototype has no accounts, cloud uploads, or cross-device project sync. ReplayMint is an early validation prototype; its brand name has not been legally cleared.

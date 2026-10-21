@@ -28,7 +28,7 @@ export default function PricingPage() {
   return (
     <main className="pricing-root">
       <div className="pricing-shell">
-        <Link href="/" className="pricing-back"><ArrowLeft size={16} /> Back to Cutlume</Link>
+        <Link href="/" className="pricing-back"><ArrowLeft size={16} /> Back to ReplayMint</Link>
         <header className="pricing-heading">
           <p className="pricing-eyebrow">Founding pilot</p>
           <h1>Keep your demo <span>in sync.</span></h1>
@@ -42,7 +42,7 @@ export default function PricingPage() {
           {error && <p role="alert" className="pricing-error">{error}</p>}
           <div className="pricing-trust"><span><LockKeyhole size={13} /> Payment details handled by Stripe</span><span><ShieldCheck size={13} /> No charge until checkout confirms</span></div>
         </section>
-        <p className="pricing-disclaimer">Cutlume is an early-stage product. App compatibility varies and must be checked before purchase; this pilot is a guided test, not a promise that every third-party app can be replayed automatically.</p>
+        <p className="pricing-disclaimer">ReplayMint is an early-stage product. App compatibility varies and must be checked before purchase; this pilot is a guided test, not a promise that every third-party app can be replayed automatically.</p>
       </div>
     </main>
   );

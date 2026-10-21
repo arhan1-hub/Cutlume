@@ -259,7 +259,7 @@ export default function Home() {
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <header className="topbar">
-        <button className="brand" onClick={resetProject} aria-label="Cutlume home">
+        <button className="brand" onClick={resetProject} aria-label="ReplayMint home">
           <span className="brand-mark"><Clapperboard size={19} strokeWidth={2.2} /></span>
           <span>cutlume<span className="brand-period">.</span></span>
         </button>
@@ -347,7 +347,7 @@ export default function Home() {
 
           <section id="principles" className="manifesto">
             <div className="manifesto-symbol"><Layers3 size={23} /></div>
-            <div className="manifesto-copy"><div className="eyebrow">OUR PRODUCT PRINCIPLE</div><h2>Useful first.<br /><span className="gradient-text">Polished second.</span></h2><p>Cutlume should save founders repeat work, not create another editing chore. Keep workflows inspectable, report failures honestly, and only share a video after the real app replay succeeds.</p></div>
+            <div className="manifesto-copy"><div className="eyebrow">OUR PRODUCT PRINCIPLE</div><h2>Useful first.<br /><span className="gradient-text">Polished second.</span></h2><p>ReplayMint should save founders repeat work, not create another editing chore. Keep workflows inspectable, report failures honestly, and only share a video after the real app replay succeeds.</p></div>
             <div className="manifesto-side"><span>01 — REPEATABLE FLOWS</span><span>02 — VISIBLE FAILURES</span><span>03 — MP4 WHEN VERIFIED</span></div>
           </section>
 
@@ -390,7 +390,7 @@ export default function Home() {
         </section>
       )}
 
-      {showFeedback && <div className="modal-backdrop" role="presentation" onClick={() => setShowFeedback(false)}><div className="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedback-title" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowFeedback(false)} aria-label="Close feedback"><X size={18} /></button><div className="eyebrow">HELP SHAPE CUTLUME</div><h2 id="feedback-title">What should we make better?</h2><p>This early build doesn't send feedback to a server. You can copy your notes and share them with the maker.</p><textarea className="text-input text-area feedback-area" rows={4} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="What felt useful, confusing, or missing?" /><button className="button button-primary full-width" onClick={() => { const text = `Cutlume feedback\n\n${feedback}`; navigator.clipboard?.writeText(text).then(() => window.alert("Feedback copied. Share it with the maker!")).catch(() => window.alert(text)); setShowFeedback(false); }}>Copy feedback <ArrowUpRight size={15} /></button></div></div>}
+      {showFeedback && <div className="modal-backdrop" role="presentation" onClick={() => setShowFeedback(false)}><div className="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedback-title" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowFeedback(false)} aria-label="Close feedback"><X size={18} /></button><div className="eyebrow">HELP SHAPE CUTLUME</div><h2 id="feedback-title">What should we make better?</h2><p>This early build doesn't send feedback to a server. You can copy your notes and share them with the maker.</p><textarea className="text-input text-area feedback-area" rows={4} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="What felt useful, confusing, or missing?" /><button className="button button-primary full-width" onClick={() => { const text = `ReplayMint feedback\n\n${feedback}`; navigator.clipboard?.writeText(text).then(() => window.alert("Feedback copied. Share it with the maker!")).catch(() => window.alert(text)); setShowFeedback(false); }}>Copy feedback <ArrowUpRight size={15} /></button></div></div>}
     </main>
   );
 }
