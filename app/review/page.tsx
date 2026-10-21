@@ -23,6 +23,7 @@ export default function DemoReviewPage() {
   const [notes, setNotes] = useState("");
   const [reviewTitle, setReviewTitle] = useState("Demo refresh review");
   const [visualDiff, setVisualDiff] = useState("");
+  const [approvedForPublish, setApprovedForPublish] = useState(false);
   const oldVideoRef = useRef<HTMLVideoElement>(null);
   const newVideoRef = useRef<HTMLVideoElement>(null);
   const oldFrameRef = useRef<HTMLCanvasElement>(null);
@@ -34,13 +35,18 @@ export default function DemoReviewPage() {
 
   const approvedCount = items.filter((item) => item.approved).length;
   const canApprove = approvedCount === items.length && Boolean(oldUrl) && Boolean(newUrl) && narration.trim().length > 0;
-  const status = canApprove ? "Ready for your final decision" : "Review required";
+  const status = approvedForPublish
+    ? "Approved for manual publishing"
+    : canApprove
+      ? "Ready for your final decision"
+      : "Review required";
   const progress = Math.round((approvedCount / items.length) * 100);
 
   function chooseFile(which: "old" | "new", file?: File) {
     if (!file) return;
     if (!file.type.startsWith("video/")) return;
     const url = URL.createObjectURL(file);
+    setApprovedForPublish(false);
     if (which === "old") { setOldUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return url; }); setOldName(file.name); }
     else { setNewUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return url; }); setNewName(file.name); }
   }
@@ -79,6 +85,7 @@ export default function DemoReviewPage() {
   }
 
   function toggleItem(id: string) {
+    setApprovedForPublish(false);
     setItems((current) => current.map((item) => item.id === id ? { ...item, approved: !item.approved } : item));
   }
 
@@ -86,7 +93,7 @@ export default function DemoReviewPage() {
     const report = {
       title: reviewTitle,
       createdAt: new Date().toISOString(),
-      status: canApprove ? "reviewed_by_user" : "review_incomplete",
+      status: approvedForPublish ? "approved_for_manual_publishing" : canApprove ? "review_complete_pending_approval" : "review_incomplete",
       clips: { previous: oldName || null, replacement: newName || null },
       narration,
       checks: items.map(({ title, detail, approved }) => ({ title, detail, approved })),
@@ -141,7 +148,7 @@ export default function DemoReviewPage() {
         <section className="review-section">
           <div className="review-section-heading"><div><p className="eyebrow">SCRIPT CHECK</p><h2>Read the narration with the new clip</h2></div><Volume2 size={21} /></div>
           <p className="review-help">Paste the narration used in the video. Play the replacement clip and confirm each line still describes what the viewer sees and what the product actually does.</p>
-          <textarea value={narration} onChange={(e) => setNarration(e.target.value)} placeholder="Example: Enter a question, review the generated answer, then open the upgrade screen…" rows={4} />
+          <textarea value={narration} onChange={(e) => { setNarration(e.target.value); setApprovedForPublish(false); }} placeholder="Example: Enter a question, review the generated answer, then open the upgrade screen…" rows={4} />
         </section>
         <section className="review-section">
           <div className="review-section-heading"><div><p className="eyebrow">HUMAN VERIFICATION</p><h2>Before you publish</h2></div><span className="review-count">{approvedCount}/{items.length} checked</span></div>
@@ -150,11 +157,22 @@ export default function DemoReviewPage() {
           <label className="review-notes-label" htmlFor="review-notes">Changes, concerns, or follow-up notes</label>
           <textarea id="review-notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Note a changed result, a permission prompt, or narration to update…" rows={3} />
         </section>
-        <section className={"review-status " + (canApprove ? "review-status-ready" : "")}>
-          <div><p className="eyebrow">REVIEW STATUS</p><h2>{status}</h2><p>{canApprove ? "All manual checks are marked complete. This is your review record, not an automated guarantee that the clips are equivalent." : "Choose both clips, add the narration, and complete every check. Any item that needs attention should stay unchecked until fixed."}</p></div>
-          <button className="button button-primary button-large" onClick={downloadReport} disabled={!oldUrl || !newUrl}>Export review report</button>
+        <section className={"review-status " + (approvedForPublish ? "review-status-ready" : "")}>
+          <div>
+            <p className="eyebrow">REVIEW STATUS</p>
+            <h2>{status}</h2>
+            <p>{approvedForPublish
+              ? "You approved this replacement for manual publishing. ReplayMint has not replaced or published anything; upload the clip yourself only after checking the destination."
+              : canApprove
+                ? "Your checklist is complete. Explicitly approve this replacement before treating it as ready. Nothing is automatically overwritten or published."
+                : "Choose both clips, add the narration, and complete every check. Any item that needs attention should stay unchecked until fixed."}</p>
+          </div>
+          <div className="review-status-actions">
+            <button type="button" className="button button-primary button-large" onClick={() => setApprovedForPublish(true)} disabled={!canApprove || approvedForPublish}>Approve replacement for manual publishing</button>
+            <button type="button" className="button button-secondary" onClick={downloadReport} disabled={!oldUrl || !newUrl}>Export review report</button>
+          </div>
         </section>
-        <p className="review-footnote"><RotateCcw size={14} /> This tool records your review and creates a JSON report. It does not yet automatically detect semantic differences, transcribe audio, or verify permission changes.</p>
+        <p className="review-footnote"><RotateCcw size={14} /> Safety rule: this is a human approval gate, not automatic replacement. The current prototype does not detect loading spinners or half-rendered states automatically, and it does not publish to your app. Any change to the clips, narration, or checklist resets approval.</p>
       </div>
     </main>
   );
