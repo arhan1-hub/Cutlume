@@ -28,21 +28,21 @@ export default function PricingPage() {
   return (
     <main className="pricing-root">
       <div className="pricing-shell">
-        <Link href="/" className="pricing-back"><ArrowLeft size={16} /> Back to Cutlume</Link>
+        <Link href="/" className="pricing-back"><ArrowLeft size={16} /> Back to ReplayMint</Link>
         <header className="pricing-heading">
           <p className="pricing-eyebrow">Founding pilot</p>
           <h1>Keep your demo <span>in sync.</span></h1>
           <p>Work with us to test repeatable product-demo workflows, spot failed steps, and prepare a fresh video for review. Built for early SaaS founders who want to help shape the product.</p>
         </header>
         <section className="pricing-card">
-          <div className="pricing-card-top"><div><h2>Founding pilot access</h2><p>A one-time pilot purchase. The final price and terms will be shown by secure checkout before you pay.</p></div><span className="pricing-badge">Limited pilot</span></div>
+          <div className="pricing-card-top"><div><h2>Founding pilot access</h2><p>A one-time pilot purchase. One-time, guided pilot. Price, taxes, and terms are shown by the secure checkout before you pay.</p></div><span className="pricing-badge">Limited pilot</span></div>
           <div className="pricing-rule" />
           <ul>{benefits.map((item) => <li key={item}><Check size={17} /> <span>{item}</span></li>)}</ul>
           <button className="button button-primary button-large full-width pricing-checkout" onClick={beginCheckout} disabled={loading}>{loading ? "Opening secure checkout…" : <>Continue to secure checkout <ArrowRight size={17} /></>}</button>
           {error && <p role="alert" className="pricing-error">{error}</p>}
-          <div className="pricing-trust"><span><LockKeyhole size={13} /> Payment details handled by Stripe</span><span><ShieldCheck size={13} /> No charge until checkout confirms</span></div>
+          <div className="pricing-trust"><span><LockKeyhole size={13} /> Secure hosted checkout</span><span><ShieldCheck size={13} /> Pilot scope confirmed before work begins</span></div>
         </section>
-        <p className="pricing-disclaimer">Cutlume is an early-stage product. App compatibility varies and must be checked before purchase; this pilot is a guided test, not a promise that every third-party app can be replayed automatically.</p>
+        <p className="pricing-disclaimer">ReplayMint is an early-stage product. Compatibility varies by app and must be checked first. The pilot is guided; no automatic replay or MP4 result is guaranteed until your workflow has been tested.</p>
       </div>
     </main>
   );

@@ -26,7 +26,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
       status: 200,
       headers: {
         "Content-Type": upstream.headers.get("content-type") || "video/mp4",
-        "Content-Disposition": 'attachment; filename="cutlume-demo.' + ((upstream.headers.get("content-type") || "").includes("mp4") ? "mp4" : "webm") + '"',
+        "Content-Disposition": 'attachment; filename="replaymint-demo.' + ((upstream.headers.get("content-type") || "").includes("mp4") ? "mp4" : "webm") + '"',
         "Cache-Control": "private, no-store",
       },
     });

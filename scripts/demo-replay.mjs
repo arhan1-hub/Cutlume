@@ -43,7 +43,7 @@ if (!Array.isArray(config.steps) || config.steps.length === 0) {
 const outputDir = path.resolve(config.outputDir || "recordings");
 await fs.mkdir(outputDir, { recursive: true });
 const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-const safeName = (config.name || "cutlume-demo").replace(/[^a-z0-9-_]+/gi, "-");
+const safeName = (config.name || "replaymint-demo").replace(/[^a-z0-9-_]+/gi, "-");
 const outputPath = path.join(outputDir, `${safeName}-${stamp}.webm`);
 const reportPath = path.join(outputDir, `${safeName}-${stamp}.report.json`);
 const viewport = config.viewport || { width: 1440, height: 900 };
@@ -147,7 +147,7 @@ async function waitForStableText(step) {
 }
 
 async function applyPresentation(step, index) {
-  await page.evaluate(() => document.querySelector("#cutlume-recording-overlay")?.remove());
+  await page.evaluate(() => document.querySelector("#replaymint-recording-overlay")?.remove());
   if (!step.caption && !step.effect) return;
 
   const recordingStyle = config.recordingStyle || {};
@@ -178,7 +178,7 @@ async function applyPresentation(step, index) {
 
   await page.evaluate(({ caption, effect, targetBox, index, accent, fontFamily, captionScale, captionPosition }) => {
     const root = document.createElement("div");
-    root.id = "cutlume-recording-overlay";
+    root.id = "replaymint-recording-overlay";
     root.setAttribute("aria-hidden", "true");
     Object.assign(root.style, {
       position: "fixed", inset: "0", zIndex: "2147483647",
@@ -187,20 +187,20 @@ async function applyPresentation(step, index) {
 
     const style = document.createElement("style");
     style.textContent = `
-      @keyframes cutlumeCaptionIn { from { opacity: 0; transform: translate(-50%, 14px); } to { opacity: 1; transform: translate(-50%, 0); } }
-      @keyframes cutlumeCaptionInRight { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-      @keyframes cutlumeSpotPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,.12), 0 0 0 3px ${accent}; } 50% { box-shadow: 0 0 0 10px rgba(255,255,255,.06), 0 0 0 3px ${accent}; } }
-      #cutlume-recording-overlay::before { content: ""; position: absolute; inset: 48% 0 0; background: linear-gradient(180deg, transparent 0%, rgba(5,7,15,.22) 24%, rgba(5,7,15,.82) 100%); }
-      #cutlume-caption { position: absolute; left: 50%; bottom: clamp(34px, 7vh, 76px); transform: translateX(-50%); width: max-content; max-width: min(86vw, 1040px); padding: clamp(20px, 2.8vw, 34px) clamp(24px, 4vw, 52px); border: 1px solid rgba(255,255,255,.2); border-radius: 24px; background: linear-gradient(135deg, rgba(18,20,36,.96), rgba(21,17,42,.92)); color: white; font-size: clamp(${25 * captionScale}px, ${3.1 * captionScale}vw, ${42 * captionScale}px); font-weight: 780; letter-spacing: -.045em; line-height: 1.12; text-align: center; text-wrap: balance; box-shadow: 0 24px 90px rgba(0,0,0,.48), 0 0 0 1px ${accent}20 inset; backdrop-filter: blur(18px); animation: cutlumeCaptionIn .38s cubic-bezier(.2,.8,.2,1) both; }
-      #cutlume-caption.at-top { left: auto; right: clamp(20px, 3vw, 42px); top: clamp(74px, 10vh, 92px); bottom: auto; transform: none; width: min(46vw, 520px); max-width: min(46vw, 520px); padding: 16px 22px; border-radius: 18px; font-size: clamp(${18 * captionScale}px, ${2.2 * captionScale}vw, ${28 * captionScale}px); text-align: right; animation: cutlumeCaptionInRight .38s cubic-bezier(.2,.8,.2,1) both; }
-      @media (max-width: 700px) { #cutlume-caption.at-top { left: 14px; right: 14px; width: auto; max-width: none; font-size: clamp(18px, 5vw, 24px); text-align: center; } }
-      #cutlume-caption::before { content: "CUTLUME  /  PRODUCT DEMO"; display: block; margin-bottom: 12px; color: #c4b5fd; font-size: clamp(10px, 1vw, 13px); font-weight: 850; letter-spacing: .19em; line-height: 1.2; }
-      #cutlume-spotlight { position: absolute; border: 2px solid ${accent}; border-radius: 12px; background: rgba(255,255,255,.025); animation: cutlumeSpotPulse 1.25s ease-in-out infinite; }
+      @keyframes replaymintCaptionIn { from { opacity: 0; transform: translate(-50%, 14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+      @keyframes replaymintCaptionInRight { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes replaymintSpotPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,.12), 0 0 0 3px ${accent}; } 50% { box-shadow: 0 0 0 10px rgba(255,255,255,.06), 0 0 0 3px ${accent}; } }
+      #replaymint-recording-overlay::before { content: ""; position: absolute; inset: 48% 0 0; background: linear-gradient(180deg, transparent 0%, rgba(5,7,15,.22) 24%, rgba(5,7,15,.82) 100%); }
+      #replaymint-caption { position: absolute; left: 50%; bottom: clamp(34px, 7vh, 76px); transform: translateX(-50%); width: max-content; max-width: min(86vw, 1040px); padding: clamp(20px, 2.8vw, 34px) clamp(24px, 4vw, 52px); border: 1px solid rgba(255,255,255,.2); border-radius: 24px; background: linear-gradient(135deg, rgba(18,20,36,.96), rgba(21,17,42,.92)); color: white; font-size: clamp(${25 * captionScale}px, ${3.1 * captionScale}vw, ${42 * captionScale}px); font-weight: 780; letter-spacing: -.045em; line-height: 1.12; text-align: center; text-wrap: balance; box-shadow: 0 24px 90px rgba(0,0,0,.48), 0 0 0 1px ${accent}20 inset; backdrop-filter: blur(18px); animation: replaymintCaptionIn .38s cubic-bezier(.2,.8,.2,1) both; }
+      #replaymint-caption.at-top { left: auto; right: clamp(20px, 3vw, 42px); top: clamp(74px, 10vh, 92px); bottom: auto; transform: none; width: min(46vw, 520px); max-width: min(46vw, 520px); padding: 16px 22px; border-radius: 18px; font-size: clamp(${18 * captionScale}px, ${2.2 * captionScale}vw, ${28 * captionScale}px); text-align: right; animation: replaymintCaptionInRight .38s cubic-bezier(.2,.8,.2,1) both; }
+      @media (max-width: 700px) { #replaymint-caption.at-top { left: 14px; right: 14px; width: auto; max-width: none; font-size: clamp(18px, 5vw, 24px); text-align: center; } }
+      #replaymint-caption::before { content: "REPLAYMINT  /  PRODUCT DEMO"; display: block; margin-bottom: 12px; color: #c4b5fd; font-size: clamp(10px, 1vw, 13px); font-weight: 850; letter-spacing: .19em; line-height: 1.2; }
+      #replaymint-spotlight { position: absolute; border: 2px solid ${accent}; border-radius: 12px; background: rgba(255,255,255,.025); animation: replaymintSpotPulse 1.25s ease-in-out infinite; }
     `;
     root.appendChild(style);
     if (caption) {
       const label = document.createElement("div");
-      label.id = "cutlume-caption";
+      label.id = "replaymint-caption";
       label.textContent = caption;
       // Keep the caption away from spotlight targets near the bottom of the viewport.
       const captionAtTop = captionPosition === "top" || (captionPosition === "auto" && Boolean(targetBox && targetBox.y > window.innerHeight * 0.5));
@@ -209,7 +209,7 @@ async function applyPresentation(step, index) {
     }
     if (effect === "spotlight" && targetBox) {
       const ring = document.createElement("div");
-      ring.id = "cutlume-spotlight";
+      ring.id = "replaymint-spotlight";
       Object.assign(ring.style, {
         left: Math.max(0, targetBox.x - 6) + "px",
         top: Math.max(0, targetBox.y - 6) + "px",
@@ -245,18 +245,18 @@ async function showEndCard() {
   };
   const fontFamily = fontChoices[recordingStyle.captionFont] || fontChoices["Inter, ui-sans-serif, system-ui, sans-serif"];
   const copy = {
-    brand: endCard.brand || "CUTLUME",
+    brand: endCard.brand || "REPLAYMINT",
     headline: endCard.headline || "Your product evolves. Your demo keeps up.",
     subheadline: endCard.subheadline || "Replay your workflow. Capture a fresh demo. Share it.",
-    cta: endCard.cta || "Make your next demo with Cutlume",
+    cta: endCard.cta || "Make your next demo with replaymint",
     accent: safeAccent,
     fontFamily
   };
 
   await page.evaluate(({ brand, headline, subheadline, cta, accent, fontFamily }) => {
-    document.querySelector("#cutlume-recording-overlay")?.remove();
+    document.querySelector("#replaymint-recording-overlay")?.remove();
     const root = document.createElement("div");
-    root.id = "cutlume-end-card";
+    root.id = "replaymint-end-card";
     root.setAttribute("aria-hidden", "true");
     Object.assign(root.style, {
       position: "fixed", inset: "0", zIndex: "2147483647", overflow: "hidden",
@@ -266,19 +266,19 @@ async function showEndCard() {
     });
     const style = document.createElement("style");
     style.textContent = `
-      @keyframes cutlumeEndIn { from { opacity: 0; transform: translateY(22px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
-      @keyframes cutlumeEndGlow { 0%,100% { opacity:.42; transform:scale(.96); } 50% { opacity:.8; transform:scale(1.06); } }
-      #cutlume-end-card .glow { position:absolute; width:min(70vw,760px); aspect-ratio:1; border-radius:50%; background:radial-gradient(circle, ${accent}30 0%, transparent 68%); filter:blur(12px); animation:cutlumeEndGlow 5s ease-in-out infinite; }
-      #cutlume-end-card .content { position:relative; width:min(100%,920px); text-align:center; animation:cutlumeEndIn .7s cubic-bezier(.2,.8,.2,1) both; }
-      #cutlume-end-card .brand { display:inline-flex; align-items:center; gap:12px; margin-bottom:clamp(28px,5vh,52px); color:#f8f7ff; font-size:clamp(15px,1.8vw,21px); font-weight:900; letter-spacing:.16em; }
-      #cutlume-end-card .logo { display:grid; place-items:center; width:clamp(42px,5vw,58px); height:clamp(42px,5vw,58px); border-radius:18px; color:#10111b; font-size:clamp(22px,2.8vw,31px); letter-spacing:-.08em; background:linear-gradient(135deg,${accent},#fff1e8); box-shadow:0 8px 38px ${accent}45; }
-      #cutlume-end-card .eyebrow { color:${accent}; font-size:clamp(10px,1.1vw,13px); font-weight:850; letter-spacing:.22em; text-transform:uppercase; margin-bottom:20px; }
-      #cutlume-end-card h1 { margin:0 auto; max-width:850px; font-size:clamp(34px,6vw,76px); line-height:.99; letter-spacing:-.065em; font-weight:850; text-wrap:balance; }
-      #cutlume-end-card .gradient { color:transparent; background:linear-gradient(100deg,${accent} 10%,#fff 75%); -webkit-background-clip:text; background-clip:text; }
-      #cutlume-end-card .sub { max-width:650px; margin:26px auto 0; color:#b8bfd4; font-size:clamp(15px,1.8vw,21px); line-height:1.5; text-wrap:balance; }
-      #cutlume-end-card .cta { display:inline-flex; align-items:center; gap:12px; margin-top:clamp(28px,5vh,48px); padding:16px 24px; border:1px solid rgba(255,255,255,.24); border-radius:15px; color:#10111b; background:linear-gradient(110deg,${accent},#fff1e8); font-size:clamp(13px,1.35vw,16px); font-weight:850; box-shadow:0 12px 42px ${accent}35; }
-      #cutlume-end-card .foot { position:absolute; left:20px; right:20px; bottom:20px; display:flex; justify-content:space-between; gap:16px; color:#727b99; font-size:clamp(9px,.9vw,11px); letter-spacing:.12em; text-transform:uppercase; }
-      @media(max-width:600px) { #cutlume-end-card .foot { justify-content:center; } #cutlume-end-card .foot span:last-child { display:none; } }
+      @keyframes replaymintEndIn { from { opacity: 0; transform: translateY(22px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+      @keyframes replaymintEndGlow { 0%,100% { opacity:.42; transform:scale(.96); } 50% { opacity:.8; transform:scale(1.06); } }
+      #replaymint-end-card .glow { position:absolute; width:min(70vw,760px); aspect-ratio:1; border-radius:50%; background:radial-gradient(circle, ${accent}30 0%, transparent 68%); filter:blur(12px); animation:replaymintEndGlow 5s ease-in-out infinite; }
+      #replaymint-end-card .content { position:relative; width:min(100%,920px); text-align:center; animation:replaymintEndIn .7s cubic-bezier(.2,.8,.2,1) both; }
+      #replaymint-end-card .brand { display:inline-flex; align-items:center; gap:12px; margin-bottom:clamp(28px,5vh,52px); color:#f8f7ff; font-size:clamp(15px,1.8vw,21px); font-weight:900; letter-spacing:.16em; }
+      #replaymint-end-card .logo { display:grid; place-items:center; width:clamp(42px,5vw,58px); height:clamp(42px,5vw,58px); border-radius:18px; color:#10111b; font-size:clamp(22px,2.8vw,31px); letter-spacing:-.08em; background:linear-gradient(135deg,${accent},#fff1e8); box-shadow:0 8px 38px ${accent}45; }
+      #replaymint-end-card .eyebrow { color:${accent}; font-size:clamp(10px,1.1vw,13px); font-weight:850; letter-spacing:.22em; text-transform:uppercase; margin-bottom:20px; }
+      #replaymint-end-card h1 { margin:0 auto; max-width:850px; font-size:clamp(34px,6vw,76px); line-height:.99; letter-spacing:-.065em; font-weight:850; text-wrap:balance; }
+      #replaymint-end-card .gradient { color:transparent; background:linear-gradient(100deg,${accent} 10%,#fff 75%); -webkit-background-clip:text; background-clip:text; }
+      #replaymint-end-card .sub { max-width:650px; margin:26px auto 0; color:#b8bfd4; font-size:clamp(15px,1.8vw,21px); line-height:1.5; text-wrap:balance; }
+      #replaymint-end-card .cta { display:inline-flex; align-items:center; gap:12px; margin-top:clamp(28px,5vh,48px); padding:16px 24px; border:1px solid rgba(255,255,255,.24); border-radius:15px; color:#10111b; background:linear-gradient(110deg,${accent},#fff1e8); font-size:clamp(13px,1.35vw,16px); font-weight:850; box-shadow:0 12px 42px ${accent}35; }
+      #replaymint-end-card .foot { position:absolute; left:20px; right:20px; bottom:20px; display:flex; justify-content:space-between; gap:16px; color:#727b99; font-size:clamp(9px,.9vw,11px); letter-spacing:.12em; text-transform:uppercase; }
+      @media(max-width:600px) { #replaymint-end-card .foot { justify-content:center; } #replaymint-end-card .foot span:last-child { display:none; } }
     `;
     root.appendChild(style);
     const glow = document.createElement("div");
@@ -319,7 +319,7 @@ async function showEndCard() {
     const foot = document.createElement("div");
     foot.className = "foot";
     const left = document.createElement("span");
-    left.textContent = "CUTLUME  ·  REPLAY. REFRESH. SHARE.";
+    left.textContent = "REPLAYMINT  ·  REPLAY. REFRESH. SHARE.";
     const right = document.createElement("span");
     right.textContent = "YOUR WORKFLOW, ON REPEAT";
     foot.append(left, right);
@@ -331,7 +331,7 @@ async function showEndCard() {
   await page.waitForTimeout(500);
   await page.screenshot({ path: screenshotPath, fullPage: false }).catch(() => {});
   await page.waitForTimeout(durationMs);
-  await page.evaluate(() => document.querySelector("#cutlume-end-card")?.remove());
+  await page.evaluate(() => document.querySelector("#replaymint-end-card")?.remove());
   console.log(`Branded end card shown for ${durationMs}ms.`);
   return { status: "shown", durationMs, screenshot: screenshotPath, headline: copy.headline };
 }
@@ -347,8 +347,8 @@ async function runStep(step, index) {
       // Let the caption entrance animation finish before inspecting or capturing it.
       await page.waitForTimeout(500);
       const overlayState = await page.evaluate(() => {
-        const caption = document.querySelector("#cutlume-caption");
-        const spotlight = document.querySelector("#cutlume-spotlight");
+        const caption = document.querySelector("#replaymint-caption");
+        const spotlight = document.querySelector("#replaymint-spotlight");
         const visible = (element) => {
           if (!element) return false;
           const style = getComputedStyle(element);
@@ -465,12 +465,12 @@ async function runStep(step, index) {
   if (step.pauseAfter) await page.waitForTimeout(Math.min(Number(step.pauseAfter), 15000));
   const presentationHoldMs = Number(step.presentationMs ?? (step.caption || step.effect ? 1600 : 0));
   if (presentationHoldMs > 0) await page.waitForTimeout(Math.min(Math.max(presentationHoldMs, 0), 10000));
-  await page.evaluate(() => document.querySelector("#cutlume-recording-overlay")?.remove());
+  await page.evaluate(() => document.querySelector("#replaymint-recording-overlay")?.remove());
   completedSteps.push({ step: index + 1, label, action: step.action, status: "passed", completedAt: new Date().toISOString() });
 }
 
 try {
-  console.log("\nCutlume Demo Replay — local prototype");
+  console.log("\nreplaymint Demo Replay — local prototype");
   console.log(`Target: ${baseUrl}`);
   console.log(`Steps: ${config.steps.length}`);
   console.log("Use a test account and avoid real payment or personal data.\n");
@@ -609,7 +609,7 @@ if (recordingSaved && shouldConvertMp4) {
 }
 
 const report = {
-  name: config.name || "cutlume-demo",
+  name: config.name || "replaymint-demo",
   targetUrl: baseUrl,
   startedAt: stamp,
   finishedAt: new Date().toISOString(),
