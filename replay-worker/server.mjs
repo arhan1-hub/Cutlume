@@ -158,7 +158,7 @@ async function execute(job) {
     }
   } else {
     job.status = "failed";
-    job.error = code === null ? "Replay worker timed out." : (job.report?.failure?.message || "Replay did not complete successfully.");
+    job.error = code === null ? "Replay timed out after 3 minutes. Check the target app and workflow selectors." : (job.report?.failure?.message ? `Step ${job.report.failure.step || "?"}${job.report.failure.label ? ` (${job.report.failure.label})` : ""}: ${job.report.failure.message}` : `Replay process exited with code ${String(code)}; report status: ${job.report?.status || "missing"}. Open the Railway worker logs for the underlying error.`);
   }
   await fs.rm(configPath, { force: true }).catch(() => {});
   active = false;
