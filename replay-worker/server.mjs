@@ -135,7 +135,16 @@ async function execute(job) {
   proc.stdout.on("data", append);
   proc.stderr.on("data", append);
   const timeout = setTimeout(() => { proc.kill("SIGKILL"); }, TIMEOUT_MS);
-  const code = await new Promise(resolve => proc.on("close", resolve));
+  const code = await new Promise((resolve) => {
+    proc.once("error", (error) => {
+      logs = (logs + "\\n[worker spawn error] " + error.message).slice(-12000);
+      resolve(null);
+    });
+    proc.once("close", (exitCode, signal) => {
+      if (signal) logs = (logs + "\\n[worker signal] " + signal).slice(-12000);
+      resolve(exitCode);
+    });
+  });
   clearTimeout(timeout);
   if (code !== 0) {
     console.error(`[replay-job ${job.id}] subprocess exited with code ${String(code)}; captured output follows`);
@@ -162,7 +171,12 @@ async function execute(job) {
     }
   } else {
     job.status = "failed";
-    job.error = code === null ? "Replay timed out after 3 minutes. Check the target app and workflow selectors." : (job.report?.failure?.message ? `Step ${job.report.failure.step || "?"}${job.report.failure.label ? ` (${job.report.failure.label})` : ""}: ${job.report.failure.message}` : `Replay process exited with code ${String(code)}; report status: ${job.report?.status || "missing"}. Open the Railway worker logs for the underlying error.`);
+    const logTail = logs.trim().slice(-1800);
+    job.error = code === null
+      ? (logs.includes("[worker spawn error]") ? "Could not start the replay process: " + logs.split("[worker spawn error]").at(-1).trim().slice(0, 500) : "Replay timed out after 3 minutes. Check the target app and workflow selectors.")
+      : (job.report?.failure?.message
+        ? `Step ${job.report.failure.step || "?"}${job.report.failure.label ? ` (${job.report.failure.label})` : ""}: ${job.report.failure.message}`
+        : `Replay process exited with code ${String(code)}; report status: ${job.report?.status || "missing"}.${logTail ? " Worker diagnostic: " + logTail.replace(/\\s+/g, " ").slice(-1200) : " No subprocess output was captured; check the worker image and Playwright installation."}`);
   }
   await fs.rm(configPath, { force: true }).catch(() => {});
   active = false;
