@@ -137,6 +137,10 @@ async function execute(job) {
   const timeout = setTimeout(() => { proc.kill("SIGKILL"); }, TIMEOUT_MS);
   const code = await new Promise(resolve => proc.on("close", resolve));
   clearTimeout(timeout);
+  if (code !== 0) {
+    console.error(`[replay-job ${job.id}] subprocess exited with code ${String(code)}; captured output follows`);
+    console.error(logs.slice(-12000) || "[replay-job] subprocess produced no stdout/stderr");
+  }
   const entries = await fs.readdir(dir).catch(() => []);
   const reportName = entries.filter(name => name.endsWith(".report.json")).sort().at(-1);
   let report = null;
