@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       cache: "no-store",
     });
     const payload = await upstream.json().catch(() => ({}));
-    if (!upstream.ok) return jsonError("Replay worker rejected the job. Check worker configuration and logs.", 502);
+    if (!upstream.ok) { const workerError = typeof payload?.error === "string" ? payload.error.slice(0, 300) : "No diagnostic was returned by the worker."; return jsonError(`Replay worker returned HTTP ${upstream.status}: ${workerError}`, upstream.status === 429 ? 429 : 502); }
     recent.push(now);
     recentJobs.set(clientKey, recent);
     return NextResponse.json(payload, { status: 202, headers: { "Cache-Control": "no-store" } });
