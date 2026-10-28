@@ -91,7 +91,10 @@ function validateWorkflow(value) {
       if (!hasTrigger || "x" in trigger || "y" in trigger) throw new Error("Sample upload needs a supported accessible attach-button target; coordinates are not accepted.");
     }
     if (raw.action === "goto") throw new Error("Additional navigation steps are disabled; the worker visits only the allowlisted base URL.");
-    if (raw.action === "clickAt" || raw.action === "typeAt") throw new Error("Coordinate actions are disabled in hosted mode; use stable accessible selectors.");
+    if (raw.action === "clickAt" || raw.action === "typeAt") {
+      if (!Number.isFinite(raw.x) || !Number.isFinite(raw.y) || raw.x < 0 || raw.y < 0 || raw.x > 2000 || raw.y > 2000) throw new Error("Step " + (i + 1) + " needs numeric x/y coordinates between 0 and 2000.");
+      if (raw.action === "typeAt" && (typeof raw.text !== "string" || raw.text.length > 2000)) throw new Error("Step " + (i + 1) + " typeAt needs text of at most 2000 characters.");
+    }
     if (raw.action === "wait" && Number(raw.ms) > 30000) throw new Error("Pause cannot exceed 30 seconds.");
   }
 }
