@@ -370,6 +370,35 @@ export default function DemoReplayPage() {
     event.target.value = "";
   }
 
+  async function downloadRecording() {
+    if (!jobId) return;
+    setJobError("");
+    setJobMessage("Preparing your video download…");
+    try {
+      const response = await fetch(`/api/replay/${encodeURIComponent(jobId)}/video`, { cache: "no-store" });
+      const contentType = response.headers.get("content-type") || "";
+      if (!response.ok || !contentType.toLowerCase().includes("video/")) {
+        const payload = contentType.includes("json") ? await response.json().catch(() => ({})) : {};
+        throw new Error(typeof payload.error === "string" ? payload.error : `Download failed (HTTP ${response.status}). Generate the recording again if it has expired.`);
+      }
+      const blob = await response.blob();
+      if (blob.size < 1024) throw new Error("The downloaded recording is unexpectedly small. Please generate it again.");
+      const extension = contentType.toLowerCase().includes("mp4") ? "mp4" : contentType.toLowerCase().includes("webm") ? "webm" : "";
+      if (!extension) throw new Error("The server returned an unsupported video format.");
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = `replaymint-demo.${extension}`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 30000);
+      setJobMessage("Video download started. Open the downloaded MP4/WebM to verify playback.");
+    } catch (error) {
+      setJobError(error instanceof Error ? error.message : "Could not download the recording.");
+    }
+  }
+
   function downloadWorkflow() {
     if (!validUrl || steps.length === 0) return;
     const blob = new Blob([JSON.stringify(config, null, 2) + "\n"], { type: "application/json" });
@@ -499,7 +528,7 @@ export default function DemoReplayPage() {
                 <strong>{jobError ? "Replay needs attention" : jobStatus === "completed" ? "Your demo is ready" : jobStatus === "failed" ? "Replay failed" : "Replay status"}</strong>
                 <span>{jobError || jobMessage}</span>
                 {jobStatus === "completed" && jobId && <>
-                  <a className="button button-primary full-width" href={`/api/replay/${jobId}/video`} download><Download size={15} /> Download recording</a>
+                  <button type="button" className="button button-primary full-width" onClick={downloadRecording}><Download size={15} /> Download recording</button>
                   <Link className="button button-secondary full-width" href={`/review?jobId=${encodeURIComponent(jobId)}`}><ShieldCheck size={15} /> Review before publishing</Link>
                   <small className="replay-field-hint">The replacement opens in Review Clips. Add the previous published clip and approve the new version before you manually publish it.</small>
                 </>}
