@@ -127,7 +127,7 @@ async function execute(job) {
     const text = chunk.toString();
     logs = (logs + text).slice(-12000);
     pendingOutput = (pendingOutput + text).slice(-4000);
-    const matches = [...pendingOutput.matchAll(/\\[(\\d+)\\/(\\d+)\\]\\s+([^\\r\\n]+)/g)];
+    const matches = [...pendingOutput.matchAll(/\[(\d+)\/(\d+)\]\s+([^\r\n]+)/g)];
     const latest = matches.at(-1);
     if (latest) job.progress = { currentStep: Number(latest[1]), totalSteps: Number(latest[2]), message: latest[3].trim().slice(0, 180) };
     if (pendingOutput.length > 3000) pendingOutput = pendingOutput.slice(-1000);
@@ -137,11 +137,11 @@ async function execute(job) {
   const timeout = setTimeout(() => { proc.kill("SIGKILL"); }, TIMEOUT_MS);
   const code = await new Promise((resolve) => {
     proc.once("error", (error) => {
-      logs = (logs + "\\n[worker spawn error] " + error.message).slice(-12000);
+      logs = (logs + "\n[worker spawn error] " + error.message).slice(-12000);
       resolve(null);
     });
     proc.once("close", (exitCode, signal) => {
-      if (signal) logs = (logs + "\\n[worker signal] " + signal).slice(-12000);
+      if (signal) logs = (logs + "\n[worker signal] " + signal).slice(-12000);
       resolve(exitCode);
     });
   });
