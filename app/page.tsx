@@ -195,6 +195,18 @@ export default function Home() {
       }
 
       setExportProgress(8);
+      // Include the founder's uploaded product footage in the actual rendered composition.
+      // Previously the upload was accepted by the UI but never passed to the renderer,
+      // so exports silently fell back to a fabricated generic dashboard.
+      const productMediaUrl = productFile ? URL.createObjectURL(productFile) : undefined;
+      const productMediaProps = productMediaUrl
+        ? (productFile?.type.startsWith("video/")
+          ? { productVideo: productMediaUrl }
+          : productFile?.type.startsWith("image/")
+            ? { productImage: productMediaUrl }
+            : {})
+        : {};
+      const renderProps = { scenes, mood, projectName, ...productMediaProps };
       const { getBlob } = await renderMediaOnWeb({
         composition: {
           component: LaunchFilmComposition,
@@ -203,9 +215,9 @@ export default function Home() {
           width: dimensions.width,
           height: dimensions.height,
           id: "replaymint-launch-film",
-          defaultProps: { scenes, mood, projectName },
+          defaultProps: renderProps,
         },
-        inputProps: { scenes, mood, projectName },
+        inputProps: renderProps,
         container: "mp4",
         videoCodec: "h264",
         muted: true,
