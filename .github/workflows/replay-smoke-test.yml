@@ -1,0 +1,109 @@
+name: Replay smoke test
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/demo-replay.mjs"
+      - "fixtures/demo-smoke-test.html"
+      - "demo-flow.smoke-*.json"
+      - ".github/workflows/replay-smoke-test.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  replay-smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Start local test page
+        run: |
+          python3 -m http.server 4173 --directory fixtures > /tmp/cutlume-fixture.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/demo-smoke-test.html > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/cutlume-fixture.log
+          exit 1
+
+      - name: Test successful replay, WebM and MP4
+        run: |
+          node scripts/demo-replay.mjs --config demo-flow.smoke-test.json --headless --slow-mo 0
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const reportFile = fs.readdirSync("recordings").filter((name) => name.startsWith("cutlume-smoke-success-") && name.endsWith(".report.json")).sort().at(-1);
+            if (!reportFile) throw new Error("Success run report missing");
+            const report = JSON.parse(fs.readFileSync("recordings/" + reportFile, "utf8"));
+            if (report.status !== "passed") throw new Error("Success run report did not pass");
+            if (!report.recording || !fs.statSync(report.recording).size) throw new Error("WebM missing or empty");
+            if (report.mp4Status !== "created" || !report.mp4 || !fs.statSync(report.mp4).size) throw new Error("MP4 missing or empty");
+            if (report.endCard?.status !== "shown") throw new Error("Branded end card was not shown");
+            if (!report.endCard.screenshot || !fs.existsSync(report.endCard.screenshot) || !fs.statSync(report.endCard.screenshot).size) throw new Error("End-card screenshot missing or empty");
+            const config = JSON.parse(fs.readFileSync("demo-flow.smoke-test.json", "utf8"));
+            const expectedPresentations = config.steps.filter((step) => step.caption || step.effect).length;
+            const expectedSpotlights = config.steps.filter((step) => step.effect === "spotlight").length;
+            const presentations = report.presentationScreenshots || [];
+            if (presentations.length !== expectedPresentations) throw new Error(`Expected ${expectedPresentations} presentation screenshots, got ${presentations.length}`);
+            for (const item of presentations) {
+              if (!item.path || !fs.existsSync(item.path) || !fs.statSync(item.path).size) throw new Error(`Presentation screenshot missing for step ${item.step}`);
+              if (!item.captionVisible) throw new Error(`Rendered caption not visible for step ${item.step} (opacity: ${item.captionOpacity})`);
+            }
+            const spotlightItems = presentations.filter((item) => item.effect === "spotlight");
+            if (spotlightItems.length !== expectedSpotlights) throw new Error(`Expected ${expectedSpotlights} spotlight checks, got ${spotlightItems.length}`);
+            for (const item of spotlightItems) {
+              if (!item.spotlightVisible) throw new Error(`Rendered spotlight not visible for step ${item.step}`);
+              if (!item.captionRect || !item.spotlightRect) throw new Error(`Caption/spotlight geometry missing for step ${item.step}`);
+              const a = item.captionRect;
+              const b = item.spotlightRect;
+              const overlaps = a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+              if (overlaps) throw new Error(`Caption overlaps spotlight target at step ${item.step}`);
+            }
+            console.log("Success replay, playable MP4, WebM, branded end card, every caption and spotlight, and non-overlapping composition verified.");
+          '
+
+      - name: Test intentional failure still finalizes a recording and report
+        run: |
+          if node scripts/demo-replay.mjs --config demo-flow.smoke-failure.json --headless --slow-mo 0; then
+            echo "Expected the missing-selector test to fail, but it passed."
+            exit 1
+          fi
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const reportFile = fs.readdirSync("recordings").filter((name) => name.startsWith("cutlume-smoke-failure-") && name.endsWith(".report.json")).sort().at(-1);
+            if (!reportFile) throw new Error("Failure run report missing");
+            const report = JSON.parse(fs.readFileSync("recordings/" + reportFile, "utf8"));
+            if (report.status !== "failed") throw new Error("Failure run was not marked failed");
+            if (!report.failure) throw new Error("Failure details missing");
+            if (!report.recording || !fs.statSync(report.recording).size) throw new Error("Failure WebM missing or empty");
+            if (!report.failure.screenshot || !fs.existsSync(report.failure.screenshot)) throw new Error("Failure screenshot missing");
+            console.log("Intentional failure correctly reports failure and preserves video/screenshot.");
+          '
+
+      - name: Upload smoke-test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cutlume-replay-smoke-test
+          path: recordings/
+          if-no-files-found: warn
+          retention-days: 7

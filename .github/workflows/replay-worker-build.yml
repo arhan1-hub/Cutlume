@@ -1,0 +1,29 @@
+name: Replay worker container build
+
+on:
+  pull_request:
+    paths:
+      - "replay-worker/**"
+      - "scripts/demo-replay.mjs"
+      - "package.json"
+      - ".github/workflows/replay-worker-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  worker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Validate Node.js syntax
+        run: |
+          node --check replay-worker/server.mjs
+          node --check scripts/demo-replay.mjs
+      - name: Build replay worker image
+        run: docker build -f replay-worker/Dockerfile -t cutlume-replay-worker:ci .
+      - name: Verify the packaged upload fixture exists in the image
+        run: docker run --rm --entrypoint sh cutlume-replay-worker:ci -c 'test -s /app/fixtures/demo-image.svg'
