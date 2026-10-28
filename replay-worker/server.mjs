@@ -119,7 +119,7 @@ async function execute(job) {
   const dir = path.join(DATA, job.id);
   await fs.mkdir(dir, { recursive: true });
   const configPath = path.join(dir, "workflow.json");
-  const config = { ...job.workflow, baseUrl: job.target, outputDir: dir, name: "cutlume-" + job.id };
+  const config = { ...job.workflow, baseUrl: job.workflow.baseUrl, outputDir: dir, name: "cutlume-" + job.id };
   await fs.writeFile(configPath, JSON.stringify(config), { mode: 0o600 });
   const proc = spawn(process.execPath, [path.join(ROOT, "scripts", "demo-replay.mjs"), "--config", configPath, "--headless", "--slow-mo", "0"], {
     cwd: ROOT, env: { ...process.env, CUTLUME_REPLAY_JOB_ID: job.id, CUTLUME_REPLAY_ENFORCE_HOST_ALLOWLIST: "1" }, stdio: ["ignore", "pipe", "pipe"],
