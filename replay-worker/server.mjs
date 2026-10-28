@@ -226,10 +226,22 @@ async function handle(req, res) {
     if (match[2] === "/video") {
       if (job.status !== "completed" || !job.videoPath) return reply(res, 409, { error: "Video is not ready yet." });
       try {
-        const stat = await fs.stat(job.videoPath);
-        res.writeHead(200, { "content-type": job.videoType, "content-length": stat.size, "cache-control": "private, no-store", "content-disposition": 'attachment; filename="cutlume-demo.' + (job.videoType === "video/mp4" ? "mp4" : "webm") + '"' });
-        return fs.createReadStream(job.videoPath).pipe(res);
-      } catch { return reply(res, 410, { error: "Recording expired." }); }
+        // Buffer the finished artifact before sending it. Streaming a file directly
+        // through the Railway edge was closing the upstream socket during downloads.
+        const video = await fs.readFile(job.videoPath);
+        res.writeHead(200, {
+          "content-type": job.videoType,
+          "content-length": video.length,
+          "cache-control": "private, no-store, no-transform",
+          "x-content-type-options": "nosniff",
+          "content-disposition": 'attachment; filename="replaymint-demo.' + (job.videoType === "video/mp4" ? "mp4" : "webm") + '"'
+        });
+        res.end(video);
+        return;
+      } catch (error) {
+        console.error("[replay-video " + job.id + "] Failed to read recording:", error instanceof Error ? error.message : String(error));
+        return reply(res, 410, { error: "Recording is missing or expired. Generate a new demo recording." });
+      }
     }
     return reply(res, 200, { ...safeJob(job), report: job.report || null, videoUrl: job.status === "completed" ? "/jobs/" + job.id + "/video" : null });
   }
