@@ -176,7 +176,7 @@ async function execute(job) {
       ? (logs.includes("[worker spawn error]") ? "Could not start the replay process: " + logs.split("[worker spawn error]").at(-1).trim().slice(0, 500) : "Replay timed out after 3 minutes. Check the target app and workflow selectors.")
       : (job.report?.failure?.message
         ? `Step ${job.report.failure.step || "?"}${job.report.failure.label ? ` (${job.report.failure.label})` : ""}: ${job.report.failure.message}`
-        : `Replay process exited with code ${String(code)}; report status: ${job.report?.status || "missing"}.${logTail ? " Worker diagnostic: " + logTail.replace(/\\s+/g, " ").slice(-1200) : " No subprocess output was captured; check the worker image and Playwright installation."}`);
+        : `Replay process exited with code ${String(code)}; report status: ${job.report?.status || "missing"}.${logTail ? " Worker diagnostic: " + logTail.replace(/\s+/g, " ").slice(-1200) : " No subprocess output was captured; check the worker image and Playwright installation."}`);
   }
   await fs.rm(configPath, { force: true }).catch(() => {});
   active = false;
