@@ -486,7 +486,13 @@ try {
     if (message.type() === "error" && /RenderBox was not laid out|FlutterError|Uncaught Error/i.test(message.text())) runtimeErrors.push(message.text().slice(0, 1200));
   });
   if (process.env.CUTLUME_REPLAY_ENFORCE_HOST_ALLOWLIST === "1") {
-    const allowedHosts = (process.env.CUTLUME_REPLAY_ALLOWED_HOSTS || "").split(",").map((host) => host.trim().toLowerCase()).filter(Boolean);
+    // Keep the worker's explicitly approved Preview smoke-test host in sync
+    // with the API/worker allowlists. Without this entry, the top-level page and
+    // every asset are blocked even though validateTarget() accepts the URL.
+    const allowedHosts = [...new Set([
+      ...(process.env.CUTLUME_REPLAY_ALLOWED_HOSTS || "").split(",").map((host) => host.trim().toLowerCase()).filter(Boolean),
+      "flutter-ai-starter-kit-demo.dooettli.workers.dev",
+    ])];
     await page.route("**/*", async (route) => {
       try {
         const requestUrl = new URL(route.request().url());
@@ -503,7 +509,26 @@ try {
     });
   }
   video = page.video();
-  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+  const navigation = await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+  if (!navigation || !navigation.ok()) {
+    throw new Error(`Target page did not load successfully (HTTP ${navigation?.status() ?? "no response"}).`);
+  }
+  // Fail early instead of rendering captions/end cards over a blank browser.
+  await page.locator("body").waitFor({ state: "attached", timeout: 10000 });
+  await page.waitForFunction(() => {
+    const body = document.body;
+    if (!body) return false;
+    const text = (body.innerText || "").trim();
+    const visibleElement = [...body.querySelectorAll("*")].some((element) => {
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.display !== "none" && style.visibility !== "hidden" &&
+        Number(style.opacity) > 0 && rect.width > 2 && rect.height > 2;
+    });
+    return text.length >= 20 || visibleElement;
+  }, { timeout: 15000 }).catch(() => {
+    throw new Error("The target loaded but no visible page content appeared. Check that the site is publicly accessible and not blocked from automated browsers.");
+  });
 
   for (let index = 0; index < config.steps.length; index += 1) {
     failedStep = index;
