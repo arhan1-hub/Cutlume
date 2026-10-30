@@ -313,7 +313,7 @@ export default function DemoReplayPage() {
         const parsed = JSON.parse(String(reader.result || "")) as Record<string, unknown>;
         const allowedActions = new Set<ReplayAction>([
           "waitForSelector", "click", "fill", "press", "waitForText",
-          "waitForStableText", "wait", "upload", "screenshot",
+          "waitForStableText", "wait", "scroll", "upload", "screenshot",
         ]);
         if (typeof parsed.baseUrl !== "string" || !Array.isArray(parsed.steps) || parsed.steps.length === 0) {
           throw new Error("This file doesn’t look like a ReplayMint workflow. Choose a demo-flow.json exported from ReplayMint.");
