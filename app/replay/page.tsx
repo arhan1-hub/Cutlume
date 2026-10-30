@@ -53,10 +53,10 @@ type ReplayStep = {
 const starterSteps: ReplayStep[] = [
   {
     id: "load",
-    action: "waitForSelector",
-    label: "Load the public product page",
-    selector: "body",
-    value: "",
+    action: "wait",
+    label: "Let the public product page finish loading",
+    selector: "",
+    value: "3000",
     caption: "A first look at your product.",
     effect: false,
   },
