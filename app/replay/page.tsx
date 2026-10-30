@@ -27,6 +27,7 @@ type ReplayAction =
   | "press"
   | "waitForText"
   | "waitForStableText"
+  | "scroll"
   | "wait"
   | "upload"
   | "screenshot";
@@ -46,53 +47,56 @@ type ReplayStep = {
   locatorLabel?: string;
   locatorText?: string;
   exact?: boolean;
+  scrollY?: number;
 };
 
 const starterSteps: ReplayStep[] = [
   {
     id: "load",
     action: "waitForSelector",
-    label: "Wait for the app workspace",
+    label: "Load the public product page",
     selector: "body",
     value: "",
-    caption: "Start with the product, not a blank timeline.",
+    caption: "A first look at your product.",
     effect: false,
   },
   {
-    id: "prompt",
-    action: "fill",
-    label: "Enter a prompt",
-    selector: "[data-testid='prompt-input']",
-    value: "Show me what this product can do",
-    caption: "One workflow. A clear story.",
+    id: "intro",
+    action: "wait",
+    label: "Introduce the page",
+    selector: "",
+    value: "1600",
+    caption: "See the product in its own words.",
     effect: false,
   },
   {
-    id: "generate",
-    action: "click",
-    label: "Generate the answer",
-    selector: "[data-testid='send-prompt']",
+    id: "features",
+    action: "scroll",
+    label: "Explore the next section",
+    selector: "",
     value: "",
-    caption: "Capture the moment the product responds.",
+    scrollY: 650,
+    caption: "A closer look at what it offers.",
     effect: true,
   },
   {
-    id: "response",
-    action: "waitForStableText",
-    label: "Wait for the response to finish",
-    selector: "[data-testid='assistant-response']",
+    id: "details",
+    action: "scroll",
+    label: "Explore further down the page",
+    selector: "",
     value: "",
-    caption: "Let the full answer land before moving on.",
-    effect: false,
+    scrollY: 1300,
+    caption: "The details behind the product.",
+    effect: true,
   },
   {
-    id: "upgrade",
-    action: "click",
-    label: "Open the upgrade screen",
-    selector: "[data-testid='upgrade-button']",
-    value: "",
-    caption: "Finish on the next step.",
-    effect: true,
+    id: "finish",
+    action: "wait",
+    label: "Hold the final view",
+    selector: "",
+    value: "1400",
+    caption: "A quick tour. Ready to share.",
+    effect: false,
   },
 ];
 
@@ -103,6 +107,7 @@ const actionLabels: Record<ReplayAction, string> = {
   press: "Press a key",
   waitForText: "Wait for text",
   waitForStableText: "Wait for stable text",
+  scroll: "Scroll page",
   wait: "Pause",
   upload: "Attach sample image",
   screenshot: "Take screenshot",
@@ -218,6 +223,9 @@ export default function DemoReplayPage() {
       }
       if (step.action === "wait") {
         return { ...common, ms: Number(step.value) || 800 };
+      }
+      if (step.action === "scroll") {
+        return { ...common, y: step.scrollY || 0, x: 0, pauseAfter: 500 };
       }
       if (step.action === "screenshot") {
         return { ...common, file: `${step.id}.png` };
@@ -438,8 +446,8 @@ export default function DemoReplayPage() {
         <section className="replay-hero">
           <div className="replay-hero-copy">
             <div className="eyebrow"><Workflow size={14} /> THE REPLAY WORKSPACE</div>
-            <h1>Your product changes.<br /><span className="gradient-text">Your demo catches up.</span></h1>
-            <p>Describe the browser steps once. Keep the captions and visual emphasis with the workflow. When the replay service is connected, ReplayMint can turn the recipe into a fresh recording.</p>
+            <h1>Turn a product URL into a<br /><span className="gradient-text">shareable demo video.</span></h1>
+            <p>Start with an automatic overview of a public product page. ReplayMint captures the page, adds story-led captions and a branded ending, then exports a video you can review and share.</p>
             <div className="replay-hero-pills">
               <span><Check size={13} /> Reusable workflow</span>
               <span><Check size={13} /> Captions & spotlights</span>
@@ -465,8 +473,8 @@ export default function DemoReplayPage() {
           <div className="replay-builder-heading">
             <div>
               <div className="eyebrow">WORKFLOW BUILDER / 01</div>
-              <h2>Set up your replay.</h2>
-              <p>Start with the test app URL and edit the sample steps to match its controls.</p>
+              <h2>Create a product overview.</h2>
+              <p>Paste a public product URL. The starter recipe captures the page and scrolls through a few sections automatically.</p>
             </div>
             <div className="replay-step-count"><Workflow size={15} /> {steps.length} steps</div>
           </div>
@@ -476,9 +484,9 @@ export default function DemoReplayPage() {
               <div className="replay-section-title"><span className="replay-section-icon"><Clapperboard size={17} /></span><div><strong>Demo details</strong><small>Where the replay should start</small></div></div>
               <label className="field-label" htmlFor="replay-project-name">DEMO NAME</label>
               <input id="replay-project-name" className="text-input" value={projectName} onChange={(event) => { setProjectName(event.target.value); setDownloaded(false); }} placeholder="e.g. AI workspace walkthrough" />
-              <label className="field-label" htmlFor="replay-base-url">TEST APP URL</label>
-              <input id="replay-base-url" className="text-input" value={baseUrl} onChange={(event) => { setBaseUrl(event.target.value); setDownloaded(false); }} placeholder="https://your-test-app.example" inputMode="url" />
-              <p className={baseUrl && !validUrl ? "replay-field-hint replay-field-error" : "replay-field-hint"}>{baseUrl && !validUrl ? "Enter a complete http:// or https:// URL." : "Use a separate test deployment with dummy data. Avoid production accounts and real payments."}</p>
+              <label className="field-label" htmlFor="replay-base-url">PUBLIC PRODUCT URL</label>
+              <input id="replay-base-url" className="text-input" value={baseUrl} onChange={(event) => { setBaseUrl(event.target.value); setDownloaded(false); }} placeholder="https://your-product.com" inputMode="url" />
+              <p className={baseUrl && !validUrl ? "replay-field-hint replay-field-error" : "replay-field-hint"}>{baseUrl && !validUrl ? "Enter a complete http:// or https:// URL." : "Use a public page you own or have permission to record. Login-only pages are not supported in this quick overview."}</p>
 
               <div className="replay-config-divider" />
               <div className="replay-section-title"><span className="replay-section-icon"><Sparkles size={17} /></span><div><strong>Recording style</strong><small>Applied to the exported workflow</small></div></div>
@@ -522,7 +530,7 @@ export default function DemoReplayPage() {
               </div>
               <label className="button button-secondary full-width replay-download-button" htmlFor="replay-import-workflow"><Download size={16} /> Import saved workflow JSON</label>
               <input id="replay-import-workflow" type="file" accept=".json,application/json" onChange={importWorkflow} style={{ display: "none" }} />
-              <button className="button button-primary full-width replay-download-button" onClick={startReplay} disabled={!validUrl || steps.length === 0 || submitting || ["queued", "running", "submitting"].includes(jobStatus)}><Video size={16} /> {submitting || ["queued", "running", "submitting"].includes(jobStatus) ? "Replay in progress…" : "Generate demo video"}</button>
+              <button className="button button-primary full-width replay-download-button" onClick={startReplay} disabled={!validUrl || steps.length === 0 || submitting || ["queued", "running", "submitting"].includes(jobStatus)}><Video size={16} /> {submitting || ["queued", "running", "submitting"].includes(jobStatus) ? "Replay in progress…" : "Generate overview video"}</button>
               <button className="button button-secondary full-width replay-download-button" onClick={downloadWorkflow} disabled={!validUrl || steps.length === 0}><Download size={16} /> Download workflow JSON</button>
               {(jobStatus || jobError) && <div className={jobError ? "replay-job-status replay-job-error" : "replay-job-status"} role="status">
                 <strong>{jobError ? "Replay needs attention" : jobStatus === "completed" ? "Your demo is ready" : jobStatus === "failed" ? "Replay failed" : "Replay status"}</strong>
@@ -539,7 +547,7 @@ export default function DemoReplayPage() {
             </div>
 
             <div className="replay-steps-panel">
-              <div className="replay-steps-heading"><div><span className="eyebrow">THE RECIPE</span><h3>What should ReplayMint do?</h3></div><button className="button button-secondary button-small" onClick={addStep}><Plus size={14} /> Add step</button></div>
+              <div className="replay-steps-heading"><div><span className="eyebrow">THE RECIPE</span><h3>Overview recipe</h3></div><button className="button button-secondary button-small" onClick={addStep}><Plus size={14} /> Add step</button></div>
               <div className="replay-step-list">
                 {steps.map((step, index) => (
                   <article className="replay-step-card" key={step.id}>
