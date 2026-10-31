@@ -452,10 +452,18 @@ async function runStep(step, index) {
     case "waitForStableText":
       await waitForStableText(step);
       break;
-    case "scroll":
-      await page.evaluate(({ x, y }) => window.scrollTo({ left: x, top: y, behavior: "smooth" }), { x: step.x || 0, y: step.y || 0 });
-      await page.waitForTimeout(450);
+    case "scroll": {
+      const destination = await page.evaluate(({ x, y }) => {
+        const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        const top = Math.min(Math.max(0, Number.isFinite(y) ? y : 0), maxY);
+        window.scrollTo({ left: Math.max(0, x || 0), top, behavior: "instant" });
+        return { top, maxY };
+      }, { x: step.x || 0, y: step.y || 0 });
+      await page.waitForTimeout(1100);
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      console.log(`Scrolled to ${destination.top}px of ${destination.maxY}px available.`);
       break;
+    }
     case "screenshot":
       await page.screenshot({ path: path.resolve(outputDir, step.file || `step-${index + 1}.png`), fullPage: false });
       break;
@@ -503,7 +511,49 @@ try {
     });
   }
   video = page.video();
-  await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+  const navigation = await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+  if (!navigation || !navigation.ok()) {
+    throw new Error(`Target page did not load successfully (HTTP ${navigation?.status() ?? "no response"}).`);
+  }
+  await page.locator("body").waitFor({ state: "attached", timeout: 10000 });
+  await page.evaluate(async () => {
+    if (document.fonts?.ready) await Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 5000))]);
+    await Promise.race([
+      Promise.all([...document.images].map((image) => image.complete ? Promise.resolve() : new Promise((resolve) => {
+        image.addEventListener("load", resolve, { once: true });
+        image.addEventListener("error", resolve, { once: true });
+      }))),
+      new Promise((resolve) => setTimeout(resolve, 7000)),
+    ]);
+  });
+  await page.waitForFunction(() => {
+    const body = document.body;
+    if (!body) return false;
+    const visible = (element) => {
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.display !== "none" && style.visibility !== "hidden" &&
+        Number(style.opacity) > 0.02 && rect.width > 2 && rect.height > 2 &&
+        rect.bottom > 0 && rect.right > 0 && rect.top < innerHeight && rect.left < innerWidth;
+    };
+    const text = (body.innerText || "").trim();
+    const visual = [...body.querySelectorAll("canvas, img, video, svg, main, [role=main]")].some(visible);
+    const paintedCanvas = [...body.querySelectorAll("canvas")].some((canvas) => {
+      if (!visible(canvas) || canvas.width < 2 || canvas.height < 2) return false;
+      try {
+        const context = canvas.getContext("2d");
+        if (!context) return true;
+        const pixels = context.getImageData(0, 0, Math.min(24, canvas.width), Math.min(24, canvas.height)).data;
+        for (let i = 3; i < pixels.length; i += 4) if (pixels[i] > 0) return true;
+      } catch { return true; }
+      return false;
+    });
+    return text.length >= 20 || paintedCanvas || visual;
+  }, { timeout: 20000 }).catch(() => {
+    throw new Error("ReplayMint opened the URL, but no visible product content rendered. The site may be blocking its scripts/assets or automated browser access.");
+  });
+  await page.waitForTimeout(1800);
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 
   for (let index = 0; index < config.steps.length; index += 1) {
     failedStep = index;
