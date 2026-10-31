@@ -147,7 +147,7 @@ export default function Home() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = "cutlume-storyboard.json";
+    anchor.download = "replaymint-storyboard.json";
     anchor.click();
     URL.revokeObjectURL(url);
   }
@@ -195,6 +195,18 @@ export default function Home() {
       }
 
       setExportProgress(8);
+      // Include the founder's uploaded product footage in the actual rendered composition.
+      // Previously the upload was accepted by the UI but never passed to the renderer,
+      // so exports silently fell back to a fabricated generic dashboard.
+      const productMediaUrl = productFile ? URL.createObjectURL(productFile) : undefined;
+      const productMediaProps = productMediaUrl
+        ? (productFile?.type.startsWith("video/")
+          ? { productVideo: productMediaUrl }
+          : productFile?.type.startsWith("image/")
+            ? { productImage: productMediaUrl }
+            : {})
+        : {};
+      const renderProps = { scenes, mood, projectName, ...productMediaProps };
       const { getBlob } = await renderMediaOnWeb({
         composition: {
           component: LaunchFilmComposition,
@@ -202,10 +214,10 @@ export default function Home() {
           fps,
           width: dimensions.width,
           height: dimensions.height,
-          id: "cutlume-launch-film",
-          defaultProps: { scenes, mood, projectName },
+          id: "replaymint-launch-film",
+          defaultProps: renderProps,
         },
-        inputProps: { scenes, mood, projectName },
+        inputProps: renderProps,
         container: "mp4",
         videoCodec: "h264",
         muted: true,
@@ -221,11 +233,11 @@ export default function Home() {
       }
 
       const safeName =
-        (projectName || "cutlume-launch-film")
+        (projectName || "replaymint-launch-film")
           .trim()
           .replace(/[^a-zA-Z0-9-_]+/g, "-")
           .replace(/^-+|-+$/g, "")
-          .toLowerCase() || "cutlume-launch-film";
+          .toLowerCase() || "replaymint-launch-film";
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
@@ -259,9 +271,9 @@ export default function Home() {
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <header className="topbar">
-        <button className="brand" onClick={resetProject} aria-label="Cutlume home">
+        <button className="brand" onClick={resetProject} aria-label="ReplayMint home">
           <span className="brand-mark"><Clapperboard size={19} strokeWidth={2.2} /></span>
-          <span>cutlume<span className="brand-period">.</span></span>
+          <span>replaymint<span className="brand-period">.</span></span>
         </button>
         <nav className="top-nav" aria-label="Main navigation">
           <a href="/motion">Motion library</a>
@@ -347,18 +359,18 @@ export default function Home() {
 
           <section id="principles" className="manifesto">
             <div className="manifesto-symbol"><Layers3 size={23} /></div>
-            <div className="manifesto-copy"><div className="eyebrow">OUR PRODUCT PRINCIPLE</div><h2>Useful first.<br /><span className="gradient-text">Polished second.</span></h2><p>Cutlume should save founders repeat work, not create another editing chore. Keep workflows inspectable, report failures honestly, and only share a video after the real app replay succeeds.</p></div>
+            <div className="manifesto-copy"><div className="eyebrow">OUR PRODUCT PRINCIPLE</div><h2>Useful first.<br /><span className="gradient-text">Polished second.</span></h2><p>ReplayMint should save founders repeat work, not create another editing chore. Keep workflows inspectable, report failures honestly, and only share a video after the real app replay succeeds.</p></div>
             <div className="manifesto-side"><span>01 — REPEATABLE FLOWS</span><span>02 — VISIBLE FAILURES</span><span>03 — MP4 WHEN VERIFIED</span></div>
           </section>
 
           <section className="closing-cta"><div className="closing-glow" /><div className="eyebrow">YOUR NEXT LAUNCH DESERVES A STORY</div><h2>Let's make it<br /><span className="gradient-text">feel like something.</span></h2><button className="button button-primary button-large" onClick={() => { setWorkspace(true); setStage(0); }}>Build a first draft <ArrowRight size={17} /></button><p>No AI credits required for this prototype. Your project stays in this browser.</p></section>
 
-          <footer className="footer"><button className="brand brand-footer" onClick={resetProject}><span className="brand-mark"><Clapperboard size={16} /></span><span>cutlume<span className="brand-period">.</span></span></button><span>Made for the work behind the launch.</span><button className="footer-feedback" onClick={() => setShowFeedback(true)}>Help shape the product <ArrowUpRight size={14} /></button></footer>
+          <footer className="footer"><button className="brand brand-footer" onClick={resetProject}><span className="brand-mark"><Clapperboard size={16} /></span><span>replaymint<span className="brand-period">.</span></span></button><span>Made for the work behind the launch.</span><button className="footer-feedback" onClick={() => setShowFeedback(true)}>Help shape the product <ArrowUpRight size={14} /></button></footer>
         </>
       ) : (
         <section className="studio-shell">
           <div className="studio-heading">
-            <div><button className="back-link" onClick={() => setWorkspace(false)}><ArrowLeft size={15} /> Back to overview</button><div className="eyebrow studio-eyebrow"><span className="status-dot" /> YOUR CREATIVE WORKSPACE</div><h1>Make a little <span className="gradient-text">movie magic.</span></h1><p>Build a launch story from the product you already have.</p></div>
+            <div><button className="back-link" onClick={() => setWorkspace(false)}><ArrowLeft size={15} /> Back to overview</button><div className="eyebrow studio-eyebrow"><span className="status-dot" /> YOUR CREATIVE WORKSPACE</div><h1>Make a little <span className="gradient-text">movie magic.</span></h1><p>Build a launch story around your actual product footage. Upload a screenshot or recording before exporting for a product-specific result.</p></div>
             <div className="save-indicator"><span className="save-dot" /> {saved ? "Draft saved locally" : "Local draft"}</div>
           </div>
           <div className="stepper">
@@ -384,13 +396,13 @@ export default function Home() {
 
           {stage === 2 && <div className="storyboard-layout"><div className="storyboard-column"><div className="panel-heading"><div><div className="eyebrow">STEP 03 / STORY STRUCTURE</div><h2>A story in four beats.</h2><p>Edit each scene. Keep what works. Make it yours.</p></div><button className="button button-quiet button-small" onClick={() => { setScenes(initialScenes); setActiveScene(0); }}>Reset <ArrowRight size={13} /></button></div><div className="scene-list">{scenes.map((scene, index) => <button key={scene.id} className={`scene-row ${activeScene === index ? "selected" : ""}`} onClick={() => setActiveScene(index)}><div className={`scene-thumb scene-thumb-${index % 4}`}><span>{String(index + 1).padStart(2, "0")}</span><div className="thumb-lines"><i /><i /><i /></div></div><div className="scene-row-copy"><span className="scene-kind">{scene.kind}</span><strong>{scene.title}</strong><span className="scene-subtitle">{scene.subtitle}</span></div><span className="scene-time">{scene.duration}s</span><ArrowUpRight className="scene-arrow" size={14} /></button>)}</div><button className="add-scene-button" onClick={() => { const newScene = { id: `scene-${Date.now()}`, kind: `0${scenes.length + 1} · NEW SCENE`, title: "A moment worth showing.", subtitle: "Your product, in its best light.", duration: 3, motion: "Slow reveal" }; setScenes((current) => [...current, newScene]); setActiveScene(scenes.length); }}><Plus size={15} /> Add another scene</button><div className="panel-footer"><button className="button button-quiet" onClick={() => setStage(1)}><ArrowLeft size={15} /> Back</button><button className="button button-primary" onClick={() => setStage(3)}>Preview film <Play size={14} /></button></div></div><div className="scene-edit-panel panel"><div className="eyebrow">SCENE SETTINGS</div><div className={`edit-preview scene-thumb-${activeScene % 4}`}><span className="edit-preview-kicker">{selectedScene?.kind}</span><strong>{selectedScene?.title}</strong><span className="edit-preview-sub">{selectedScene?.subtitle}</span><div className="preview-sweep" /></div>{selectedScene && <><label className="field-label" htmlFor="scene-title">HEADLINE</label><input id="scene-title" className="text-input" value={selectedScene.title} onChange={(event) => updateScene("title", event.target.value)} /><label className="field-label" htmlFor="scene-subtitle">SUPPORTING LINE</label><textarea id="scene-subtitle" className="text-input text-area" value={selectedScene.subtitle} onChange={(event) => updateScene("subtitle", event.target.value)} rows={2} /><div className="duration-header"><label className="field-label" htmlFor="scene-duration">DURATION</label><span>{selectedScene.duration}s</span></div><input id="scene-duration" className="range-input" type="range" min="2" max="8" value={selectedScene.duration} onChange={(event) => updateScene("duration", Number(event.target.value))} /><label className="field-label" htmlFor="scene-motion">MOTION PRESET</label><div className="select-wrap"><select id="scene-motion" className="text-input" value={selectedScene.motion} onChange={(event) => updateScene("motion", event.target.value)}><option>Slow reveal</option><option>Focus zoom</option><option>Slide & settle</option><option>Soft fade</option><option>Orbit drift</option></select><ChevronDown size={15} /></div></>}<div className="scene-edit-foot"><span><span className="save-dot" /> Changes save locally</span><span>SCENE {String(activeScene + 1).padStart(2, "0")}</span></div></div></div>}
 
-          {stage === 3 && <div className="export-layout"><div className="export-preview panel"><div className="preview-toolbar"><span><span className="live-dot" /> PREVIEW / {format.toUpperCase()}</span><span>{totalDuration}s total</span></div><div className={`final-film format-${format.startsWith("Portrait") ? "portrait" : format.startsWith("Square") ? "square" : "landscape"} scene-thumb-${previewSceneIndex % 4} ${previewPlaying ? "preview-is-playing" : ""}`} key={`${previewSceneIndex}-${previewPlaying ? "play" : "pause"}`}><div className="film-grain" /><div className="film-kicker">{previewScene?.kind} · {projectName || "YOUR PRODUCT"}</div><h2>{previewScene?.title}</h2><p>{previewScene?.subtitle}</p><div className="film-ui"><span /><span /><span /></div><div className="film-progress"><i style={{ width: `${((previewSceneIndex + previewSecond / Math.max(2, previewScene?.duration ?? 2)) / scenes.length) * 100}%` }} /></div><div className="film-play-overlay">{previewPlaying ? "PLAYING PREVIEW" : "PREVIEW PAUSED"}</div></div><div className="preview-controls"><button className="button button-primary" onClick={() => setPreviewPlaying((playing) => !playing)}><Play size={15} fill="currentColor" /> {previewPlaying ? "Pause preview" : "Play film"}</button><button className="button button-quiet" onClick={() => { setPreviewPlaying(false); setPreviewSecond(0); setPreviewSceneIndex((previewSceneIndex - 1 + scenes.length) % scenes.length); }}><ArrowLeft size={15} /> Previous</button><span>SCENE {previewSceneIndex + 1} / {scenes.length}</span><button className="button button-quiet" onClick={() => { setPreviewPlaying(false); setPreviewSecond(0); setPreviewSceneIndex((previewSceneIndex + 1) % scenes.length); }}>Next <ArrowRight size={15} /></button></div><div className="preview-disclaimer"><Sparkles size={15} /><span>Playable animated storyboard preview. This prototype still does not combine your uploaded footage or analyse reference videos automatically.</span></div></div><aside className="export-side panel"><div className="eyebrow">YOUR FIRST CUT</div><h2>{projectName || "Untitled launch film"}</h2><p className="export-description">A {mood.toLowerCase()} direction with {scenes.length} scenes, ready for your review.</p><div className="export-stat"><span>EST. DURATION</span><strong>{totalDuration} <small>sec</small></strong></div><div className="export-stat"><span>SCENES</span><strong>{scenes.length}</strong></div><div className="export-stat"><span>FORMAT</span><strong className="format-stat">{format.split(" · ")[1]}</strong></div><button className="button button-primary full-width" onClick={exportMp4} disabled={exporting}>{exporting ? <><LoaderCircle size={16} className="export-spinner" /> Rendering MP4…</> : <><Download size={16} /> Export MP4</>}</button>{exporting && <div className="export-progress-wrap" role="status" aria-live="polite"><div className="export-progress-label"><span>Rendering on this device</span><strong>{exportProgress}%</strong></div><div className="export-progress-track"><i style={{ width: `${exportProgress}%` }} /></div><p>Your browser is creating each frame and encoding the video. Keep this tab open.</p></div>}{exportError && <div className="export-message export-error" role="alert"><strong>Export couldn't finish.</strong><span>{exportError}</span></div>}{exportSuccess && <div className="export-message export-success" role="status"><strong>Export complete</strong><span>{exportSuccess}</span></div>}<button className="button button-secondary full-width" onClick={downloadStoryboard}>Download storyboard JSON <ArrowDownRight size={16} /></button><button className="button button-secondary full-width" onClick={() => { setStage(2); }}>Edit scenes <Layers3 size={15} /></button><button className="button button-quiet full-width" onClick={() => setShowFeedback(true)}>Give feedback <ArrowUpRight size={14} /></button><p className="export-fineprint">Creates a silent MP4 locally in your browser. Your project files are not uploaded. Export support depends on your browser and device.</p></aside></div>}
+          {stage === 3 && <div className="export-layout"><div className="export-preview panel"><div className="preview-toolbar"><span><span className="live-dot" /> PREVIEW / {format.toUpperCase()}</span><span>{totalDuration}s total</span></div><div className={`final-film format-${format.startsWith("Portrait") ? "portrait" : format.startsWith("Square") ? "square" : "landscape"} scene-thumb-${previewSceneIndex % 4} ${previewPlaying ? "preview-is-playing" : ""}`} key={`${previewSceneIndex}-${previewPlaying ? "play" : "pause"}`}><div className="film-grain" /><div className="film-kicker">{previewScene?.kind} · {projectName || "YOUR PRODUCT"}</div><h2>{previewScene?.title}</h2><p>{previewScene?.subtitle}</p><div className="film-ui"><span /><span /><span /></div><div className="film-progress"><i style={{ width: `${((previewSceneIndex + previewSecond / Math.max(2, previewScene?.duration ?? 2)) / scenes.length) * 100}%` }} /></div><div className="film-play-overlay">{previewPlaying ? "PLAYING PREVIEW" : "PREVIEW PAUSED"}</div></div><div className="preview-controls"><button className="button button-primary" onClick={() => setPreviewPlaying((playing) => !playing)}><Play size={15} fill="currentColor" /> {previewPlaying ? "Pause preview" : "Play film"}</button><button className="button button-quiet" onClick={() => { setPreviewPlaying(false); setPreviewSecond(0); setPreviewSceneIndex((previewSceneIndex - 1 + scenes.length) % scenes.length); }}><ArrowLeft size={15} /> Previous</button><span>SCENE {previewSceneIndex + 1} / {scenes.length}</span><button className="button button-quiet" onClick={() => { setPreviewPlaying(false); setPreviewSecond(0); setPreviewSceneIndex((previewSceneIndex + 1) % scenes.length); }}>Next <ArrowRight size={15} /></button></div><div className="preview-disclaimer"><Sparkles size={15} /><span>Animated storyboard preview. Uploaded product footage is included in MP4 export; this preview remains a simplified storyboard and reference videos are not analysed automatically.</span></div></div><aside className="export-side panel"><div className="eyebrow">YOUR FIRST CUT</div><h2>{projectName || "Untitled launch film"}</h2><p className="export-description">A {mood.toLowerCase()} direction with {scenes.length} scenes, ready for your review.</p><div className="export-stat"><span>EST. DURATION</span><strong>{totalDuration} <small>sec</small></strong></div><div className="export-stat"><span>SCENES</span><strong>{scenes.length}</strong></div><div className="export-stat"><span>FORMAT</span><strong className="format-stat">{format.split(" · ")[1]}</strong></div><button className="button button-primary full-width" onClick={exportMp4} disabled={exporting}>{exporting ? <><LoaderCircle size={16} className="export-spinner" /> Rendering MP4…</> : <><Download size={16} /> Export MP4</>}</button>{exporting && <div className="export-progress-wrap" role="status" aria-live="polite"><div className="export-progress-label"><span>Rendering on this device</span><strong>{exportProgress}%</strong></div><div className="export-progress-track"><i style={{ width: `${exportProgress}%` }} /></div><p>Your browser is creating each frame and encoding the video. Keep this tab open.</p></div>}{exportError && <div className="export-message export-error" role="alert"><strong>Export couldn't finish.</strong><span>{exportError}</span></div>}{exportSuccess && <div className="export-message export-success" role="status"><strong>Export complete</strong><span>{exportSuccess}</span></div>}<button className="button button-secondary full-width" onClick={downloadStoryboard}>Download storyboard JSON <ArrowDownRight size={16} /></button><button className="button button-secondary full-width" onClick={() => { setStage(2); }}>Edit scenes <Layers3 size={15} /></button><button className="button button-quiet full-width" onClick={() => setShowFeedback(true)}>Give feedback <ArrowUpRight size={14} /></button><p className="export-fineprint">Creates a silent MP4 locally in your browser. Your project files are not uploaded. Export support depends on your browser and device.</p></aside></div>}
 
           <div className="studio-footnote"><span>✳</span> A prototype for original, reference-guided product storytelling.</div>
         </section>
       )}
 
-      {showFeedback && <div className="modal-backdrop" role="presentation" onClick={() => setShowFeedback(false)}><div className="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedback-title" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowFeedback(false)} aria-label="Close feedback"><X size={18} /></button><div className="eyebrow">HELP SHAPE CUTLUME</div><h2 id="feedback-title">What should we make better?</h2><p>This early build doesn't send feedback to a server. You can copy your notes and share them with the maker.</p><textarea className="text-input text-area feedback-area" rows={4} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="What felt useful, confusing, or missing?" /><button className="button button-primary full-width" onClick={() => { const text = `Cutlume feedback\n\n${feedback}`; navigator.clipboard?.writeText(text).then(() => window.alert("Feedback copied. Share it with the maker!")).catch(() => window.alert(text)); setShowFeedback(false); }}>Copy feedback <ArrowUpRight size={15} /></button></div></div>}
+      {showFeedback && <div className="modal-backdrop" role="presentation" onClick={() => setShowFeedback(false)}><div className="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedback-title" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowFeedback(false)} aria-label="Close feedback"><X size={18} /></button><div className="eyebrow">HELP SHAPE REPLAYMINT</div><h2 id="feedback-title">What should we make better?</h2><p>This early build doesn't send feedback to a server. You can copy your notes and share them with the maker.</p><textarea className="text-input text-area feedback-area" rows={4} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="What felt useful, confusing, or missing?" /><button className="button button-primary full-width" onClick={() => { const text = `ReplayMint feedback\n\n${feedback}`; navigator.clipboard?.writeText(text).then(() => window.alert("Feedback copied. Share it with the maker!")).catch(() => window.alert(text)); setShowFeedback(false); }}>Copy feedback <ArrowUpRight size={15} /></button></div></div>}
     </main>
   );
 }

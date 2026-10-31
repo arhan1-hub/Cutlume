@@ -1,4 +1,4 @@
-# Cutlume Replay Worker (private prototype)
+# ReplayMint Replay Worker (private prototype)
 
 This service executes Playwright jobs in a separate Node.js container. It is not deployed by the website build. Run one worker replica only for this in-memory queue prototype.
 
@@ -7,13 +7,13 @@ This service executes Playwright jobs in a separate Node.js container. It is not
 From the repository root:
 
 ```bash
-docker build -f replay-worker/Dockerfile -t cutlume-replay-worker .
+docker build -f replay-worker/Dockerfile -t replaymint-replay-worker .
 docker run --rm -p 8787:8787 \
   -e CUTLUME_REPLAY_TOKEN='replace-with-a-long-random-secret' \
   -e CUTLUME_REPLAY_ALLOWED_HOSTS='your-test-host.example' \
   -e CUTLUME_REPLAY_DATA_DIR='/data/jobs' \
-  -v cutlume-replay-jobs:/data/jobs \
-  cutlume-replay-worker
+  -v replaymint-replay-jobs:/data/jobs \
+  replaymint-replay-worker
 ``
 
 Set the matching worker URL, token, and allowed host list in the Vercel **preview environment only**. Do not expose this worker publicly without network controls and request rate limits.

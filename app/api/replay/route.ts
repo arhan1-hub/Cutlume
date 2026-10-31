@@ -8,7 +8,7 @@ const MAX_STEPS = 30;
 const MAX_BODY_BYTES = 64 * 1024;
 const recentJobs = new Map<string, number[]>();
 const RATE_WINDOW_MS = 60 * 60 * 1000;
-const MAX_JOBS_PER_WINDOW = 3;
+const MAX_JOBS_PER_WINDOW = 10;
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
   const clientKey = request.headers.get("x-real-ip") || forwarded || "unknown";
   const now = Date.now();
   const recent = (recentJobs.get(clientKey) || []).filter((time) => now - time < RATE_WINDOW_MS);
-  if (recent.length >= MAX_JOBS_PER_WINDOW) return jsonError("Replay limit reached for this network. Try again later.", 429);
+  if (recent.length >= MAX_JOBS_PER_WINDOW) return jsonError("Preview replay test limit reached: 10 jobs per network per hour. Wait for the limit window to reset before trying again.", 429);
   const workerUrl = process.env.CUTLUME_REPLAY_WORKER_URL;
   const workerToken = process.env.CUTLUME_REPLAY_WORKER_TOKEN;
   if (!workerUrl || !workerToken || !configuredHosts().length) return jsonError("Replay service is not connected yet. The workflow can still be downloaded as JSON.", 503);
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       cache: "no-store",
     });
     const payload = await upstream.json().catch(() => ({}));
-    if (!upstream.ok) return jsonError("Replay worker rejected the job. Check worker configuration and logs.", 502);
+    if (!upstream.ok) { const workerError = typeof payload?.error === "string" ? payload.error.slice(0, 300) : "No diagnostic was returned by the worker."; return jsonError(`Replay worker returned HTTP ${upstream.status}: ${workerError}`, upstream.status === 429 ? 429 : 502); }
     recent.push(now);
     recentJobs.set(clientKey, recent);
     return NextResponse.json(payload, { status: 202, headers: { "Cache-Control": "no-store" } });

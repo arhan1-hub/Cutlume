@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, CheckCircle2, CircleAlert, Clapperboard, FileVideo2, Play, RotateCcw, ShieldCheck, Volume2 } from "lucide-react";
 
 type ReviewItem = { id: string; title: string; detail: string; approved: boolean };
@@ -23,6 +23,7 @@ export default function DemoReviewPage() {
   const [notes, setNotes] = useState("");
   const [reviewTitle, setReviewTitle] = useState("Demo refresh review");
   const [visualDiff, setVisualDiff] = useState("");
+  const [approvedForPublish, setApprovedForPublish] = useState(false);
   const oldVideoRef = useRef<HTMLVideoElement>(null);
   const newVideoRef = useRef<HTMLVideoElement>(null);
   const oldFrameRef = useRef<HTMLCanvasElement>(null);
@@ -32,15 +33,56 @@ export default function DemoReviewPage() {
   useEffect(() => () => { if (oldUrl) URL.revokeObjectURL(oldUrl); }, [oldUrl]);
   useEffect(() => () => { if (newUrl) URL.revokeObjectURL(newUrl); }, [newUrl]);
 
+  // When arriving from a successful replay job, load that generated clip directly
+  // into the local review workspace. The previous/published clip is still user-selected.
+  useEffect(() => {
+    const jobId = new URLSearchParams(window.location.search).get("jobId");
+    if (!jobId || !/^[a-zA-Z0-9_-]{1,128}$/.test(jobId)) return;
+    let cancelled = false;
+    let objectUrl = "";
+    setVisualDiff("Loading the completed replay into this local review session…");
+    fetch("/api/replay/" + encodeURIComponent(jobId) + "/video", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.error || "Could not load the replay video.");
+        }
+        return response.blob();
+      })
+      .then((blob) => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setNewUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return objectUrl; });
+        setNewName("ReplayMint refreshed demo");
+        setApprovedForPublish(false);
+        setVisualDiff("New replay loaded. Choose the previous published clip, then compare and review before publishing.");
+      })
+      .catch((error) => {
+        if (!cancelled) setVisualDiff(error instanceof Error ? error.message : "Could not load the replay video.");
+      });
+    return () => {
+      cancelled = true;
+      // The component's URL cleanup effect owns URLs once state has adopted them.
+      if (objectUrl && cancelled && !newUrl) URL.revokeObjectURL(objectUrl);
+    };
+  // This runs only when the review page mounts; changing the selected clip does not refetch the job.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const approvedCount = items.filter((item) => item.approved).length;
   const canApprove = approvedCount === items.length && Boolean(oldUrl) && Boolean(newUrl) && narration.trim().length > 0;
-  const status = canApprove ? "Ready for your final decision" : "Review required";
+  const status = approvedForPublish
+    ? "Approved for manual publishing"
+    : canApprove
+      ? "Ready for your final decision"
+      : "Review required";
   const progress = Math.round((approvedCount / items.length) * 100);
 
   function chooseFile(which: "old" | "new", file?: File) {
     if (!file) return;
     if (!file.type.startsWith("video/")) return;
     const url = URL.createObjectURL(file);
+    setApprovedForPublish(false);
     if (which === "old") { setOldUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return url; }); setOldName(file.name); }
     else { setNewUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return url; }); setNewName(file.name); }
   }
@@ -79,6 +121,7 @@ export default function DemoReviewPage() {
   }
 
   function toggleItem(id: string) {
+    setApprovedForPublish(false);
     setItems((current) => current.map((item) => item.id === id ? { ...item, approved: !item.approved } : item));
   }
 
@@ -86,15 +129,15 @@ export default function DemoReviewPage() {
     const report = {
       title: reviewTitle,
       createdAt: new Date().toISOString(),
-      status: canApprove ? "reviewed_by_user" : "review_incomplete",
+      status: approvedForPublish ? "approved_for_manual_publishing" : canApprove ? "review_complete_pending_approval" : "review_incomplete",
       clips: { previous: oldName || null, replacement: newName || null },
       narration,
       checks: items.map(({ title, detail, approved }) => ({ title, detail, approved })),
       notes,
-      limitations: "This report records manual review only. Cutlume has not automatically verified semantic equivalence between clips or narration.",
+      limitations: "This report records manual review only. ReplayMint has not automatically verified semantic equivalence between clips or narration.",
     };
     const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: "application/json" }));
-    const a = document.createElement("a"); a.href = url; a.download = "cutlume-review-report.json"; a.click();
+    const a = document.createElement("a"); a.href = url; a.download = "replaymint-review-report.json"; a.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
@@ -102,7 +145,7 @@ export default function DemoReviewPage() {
     <main className="app-root replay-root review-root">
       <div className="ambient ambient-one" /><div className="ambient ambient-two" />
       <header className="topbar replay-topbar">
-        <Link className="brand replay-brand" href="/" aria-label="Cutlume home"><span className="brand-mark"><Clapperboard size={19} /></span><span>cutlume<span className="brand-period">.</span></span></Link>
+        <Link className="brand replay-brand" href="/" aria-label="ReplayMint home"><span className="brand-mark"><Clapperboard size={19} /></span><span>replaymint<span className="brand-period">.</span></span></Link>
         <nav className="top-nav replay-nav" aria-label="Main navigation"><Link href="/">Launch studio</Link><Link href="/replay">Demo replay</Link><span className="replay-nav-active">Review clips</span><Link href="/pricing">Pilot pricing</Link></nav>
       </header>
       <div className="review-shell">
@@ -141,7 +184,7 @@ export default function DemoReviewPage() {
         <section className="review-section">
           <div className="review-section-heading"><div><p className="eyebrow">SCRIPT CHECK</p><h2>Read the narration with the new clip</h2></div><Volume2 size={21} /></div>
           <p className="review-help">Paste the narration used in the video. Play the replacement clip and confirm each line still describes what the viewer sees and what the product actually does.</p>
-          <textarea value={narration} onChange={(e) => setNarration(e.target.value)} placeholder="Example: Enter a question, review the generated answer, then open the upgrade screen…" rows={4} />
+          <textarea value={narration} onChange={(e) => { setNarration(e.target.value); setApprovedForPublish(false); }} placeholder="Example: Enter a question, review the generated answer, then open the upgrade screen…" rows={4} />
         </section>
         <section className="review-section">
           <div className="review-section-heading"><div><p className="eyebrow">HUMAN VERIFICATION</p><h2>Before you publish</h2></div><span className="review-count">{approvedCount}/{items.length} checked</span></div>
@@ -150,11 +193,22 @@ export default function DemoReviewPage() {
           <label className="review-notes-label" htmlFor="review-notes">Changes, concerns, or follow-up notes</label>
           <textarea id="review-notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Note a changed result, a permission prompt, or narration to update…" rows={3} />
         </section>
-        <section className={"review-status " + (canApprove ? "review-status-ready" : "")}>
-          <div><p className="eyebrow">REVIEW STATUS</p><h2>{status}</h2><p>{canApprove ? "All manual checks are marked complete. This is your review record, not an automated guarantee that the clips are equivalent." : "Choose both clips, add the narration, and complete every check. Any item that needs attention should stay unchecked until fixed."}</p></div>
-          <button className="button button-primary button-large" onClick={downloadReport} disabled={!oldUrl || !newUrl}>Export review report</button>
+        <section className={"review-status " + (approvedForPublish ? "review-status-ready" : "")}>
+          <div>
+            <p className="eyebrow">REVIEW STATUS</p>
+            <h2>{status}</h2>
+            <p>{approvedForPublish
+              ? "You approved this replacement for manual publishing. ReplayMint has not replaced or published anything; upload the clip yourself only after checking the destination."
+              : canApprove
+                ? "Your checklist is complete. Explicitly approve this replacement before treating it as ready. Nothing is automatically overwritten or published."
+                : "Choose both clips, add the narration, and complete every check. Any item that needs attention should stay unchecked until fixed."}</p>
+          </div>
+          <div className="review-status-actions">
+            <button type="button" className="button button-primary button-large" onClick={() => setApprovedForPublish(true)} disabled={!canApprove || approvedForPublish}>Approve replacement for manual publishing</button>
+            <button type="button" className="button button-secondary" onClick={downloadReport} disabled={!oldUrl || !newUrl}>Export review report</button>
+          </div>
         </section>
-        <p className="review-footnote"><RotateCcw size={14} /> This tool records your review and creates a JSON report. It does not yet automatically detect semantic differences, transcribe audio, or verify permission changes.</p>
+        <p className="review-footnote"><RotateCcw size={14} /> Safety rule: this is a human approval gate, not automatic replacement. The current prototype does not detect loading spinners or half-rendered states automatically, and it does not publish to your app. Any change to the clips, narration, or checklist resets approval.</p>
       </div>
     </main>
   );

@@ -1,4 +1,4 @@
-# Cutlume replay worker connection
+# ReplayMint replay worker connection
 
 The website currently creates workflow JSON; browser recording runs locally through npm run demo:replay. These API routes are a secure integration seam for a separately hosted Node.js worker that runs Playwright and FFmpeg. They do not run Chromium inside Vercel.
 
