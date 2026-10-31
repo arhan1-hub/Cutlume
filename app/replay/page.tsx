@@ -486,8 +486,13 @@ export default function DemoReplayPage() {
               <input id="replay-project-name" className="text-input" value={projectName} onChange={(event) => { setProjectName(event.target.value); setDownloaded(false); }} placeholder="e.g. AI workspace walkthrough" />
               <label className="field-label" htmlFor="replay-base-url">PUBLIC PRODUCT URL</label>
               <input id="replay-base-url" className="text-input" value={baseUrl} onChange={(event) => { setBaseUrl(event.target.value); setDownloaded(false); }} placeholder="https://your-product.com" inputMode="url" />
-              <p className={baseUrl && !validUrl ? "replay-field-hint replay-field-error" : "replay-field-hint"}>{baseUrl && !validUrl ? "Enter a complete http:// or https:// URL." : "Use a public page you own or have permission to record. Login-only pages are not supported in this quick overview."}</p>
+              <p className={baseUrl && !validUrl ? "replay-field-hint replay-field-error" : "replay-field-hint"}>{baseUrl && !validUrl ? "Please enter a full website address starting with https://." : "Use a public website you own or have permission to record. No login details needed."}</p>
 
+              <button className="button button-primary full-width replay-download-button" onClick={startReplay} disabled={!validUrl || steps.length === 0 || submitting || ["queued", "running", "submitting"].includes(jobStatus)}><Video size={16} /> {submitting || ["queued", "running", "submitting"].includes(jobStatus) ? "Creating your demo…" : "Create my demo video"}</button>
+              <p className="replay-field-hint">Usually takes a few minutes. You can review the video before sharing it.</p>
+
+              <details className="replay-advanced-settings">
+                <summary>Customize video style (optional)</summary>
               <div className="replay-config-divider" />
               <div className="replay-section-title"><span className="replay-section-icon"><Sparkles size={17} /></span><div><strong>Recording style</strong><small>Applied to the exported workflow</small></div></div>
               <div className="replay-style-controls">
@@ -523,14 +528,16 @@ export default function DemoReplayPage() {
                 <div className="replay-style-row"><span>Spotlight effects</span><span className="replay-style-enabled"><Check size={12} /> Per step</span></div>
                 <div className="replay-style-row"><span>Branded end card</span><span className="replay-style-enabled"><Check size={12} /> 3.5 sec</span></div>
               </div>
+              </details>
 
+              <details className="replay-advanced-settings">
+                <summary>Advanced: saved workflows & JSON</summary>
               <div className="replay-download-box">
                 <FileJson size={21} />
                 <div><strong>Reusable workflow recipe</strong><span>Save the JSON in your repo, then import it here next time to refresh the demo.</span></div>
               </div>
               <label className="button button-secondary full-width replay-download-button" htmlFor="replay-import-workflow"><Download size={16} /> Import saved workflow JSON</label>
               <input id="replay-import-workflow" type="file" accept=".json,application/json" onChange={importWorkflow} style={{ display: "none" }} />
-              <button className="button button-primary full-width replay-download-button" onClick={startReplay} disabled={!validUrl || steps.length === 0 || submitting || ["queued", "running", "submitting"].includes(jobStatus)}><Video size={16} /> {submitting || ["queued", "running", "submitting"].includes(jobStatus) ? "Replay in progress…" : "Generate overview video"}</button>
               <button className="button button-secondary full-width replay-download-button" onClick={downloadWorkflow} disabled={!validUrl || steps.length === 0}><Download size={16} /> Download workflow JSON</button>
               {(jobStatus || jobError) && <div className={jobError ? "replay-job-status replay-job-error" : "replay-job-status"} role="status">
                 <strong>{jobError ? "Replay needs attention" : jobStatus === "completed" ? "Your demo is ready" : jobStatus === "failed" ? "Replay failed" : "Replay status"}</strong>
@@ -544,9 +551,12 @@ export default function DemoReplayPage() {
               </div>}
               {downloaded && <div className="replay-inline-success" role="status"><Check size={14} /> demo-flow.json downloaded. Keep it private if it contains internal URLs.</div>}
               <p className="replay-small-note">The file contains step definitions and your target URL, but no login password or API key.</p>
+              </details>
             </div>
 
             <div className="replay-steps-panel">
+              <details className="replay-advanced-settings">
+                <summary>Advanced: edit individual recording steps</summary>
               <div className="replay-steps-heading"><div><span className="eyebrow">THE RECIPE</span><h3>Overview recipe</h3></div><button className="button button-secondary button-small" onClick={addStep}><Plus size={14} /> Add step</button></div>
               <div className="replay-step-list">
                 {steps.map((step, index) => (
@@ -603,6 +613,7 @@ export default function DemoReplayPage() {
                 ))}
               </div>
               <button className="replay-add-step" onClick={addStep}><Plus size={15} /> Add another step to the workflow</button>
+              </details>
             </div>
           </div>
         </section>
