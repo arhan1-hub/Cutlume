@@ -20,6 +20,7 @@ import {
   Sparkles,
   Upload,
   WandSparkles,
+  Workflow,
   X,
 } from "lucide-react";
 
@@ -263,6 +264,8 @@ export default function Home() {
           <span>cutlume<span className="brand-period">.</span></span>
         </button>
         <nav className="top-nav" aria-label="Main navigation">
+          <a href="/motion">Motion library</a>
+          <a href="/replay">Demo replay</a>
           <a href="#how-it-works">How it works</a>
           <a href="#principles">The approach</a>
         </nav>
@@ -278,14 +281,15 @@ export default function Home() {
         <>
           <section className="hero">
             <div className="hero-copy">
-              <div className="eyebrow"><Sparkles size={13} /> THE PRODUCT LAUNCH STUDIO</div>
-              <h1>Your product.<br /><span className="gradient-text">Main character</span><br />energy.</h1>
-              <p className="hero-description">Turn the product you built into the launch video it deserves. Bring a real screen recording and a visual reference. Shape the story. Make it feel like a moment.</p>
+              <div className="eyebrow"><Sparkles size={13} /> BUILT FOR INDIE SAAS FOUNDERS</div>
+              <h1>Your product ships.<br /><span className="gradient-text">Your demo stays fresh.</span></h1>
+              <p className="hero-description">Record your product flow once. Replay it after your UI changes. Keep the captions, highlights and branded ending—and export a shareable demo video without re-recording every click.</p>
               <div className="hero-actions">
-                <button className="button button-primary button-large" onClick={() => { setWorkspace(true); setStage(0); }}>
-                  Create your first film <ArrowRight size={17} />
-                </button>
+                <a className="button button-primary button-large" href="/replay">
+                  Build a replay workflow <ArrowRight size={17} />
+                </a>
                 <a className="text-link" href="#how-it-works"><span className="play-outline"><Play size={12} fill="currentColor" /></span> See the process</a>
+                <a className="text-link" href="/replay"><span className="play-outline"><ArrowUpRight size={12} /></span> Try demo replay</a>
               </div>
               <div className="hero-proof">
                 <div className="avatar-stack"><span>✳</span><span>◈</span><span>↗</span></div>
@@ -317,22 +321,32 @@ export default function Home() {
           </section>
 
           <section className="ticker" aria-label="Product values">
-            <span>REAL PRODUCT FOOTAGE</span><i /> <span>REFERENCE-LED STORYTELLING</span><i /> <span>EDITABLE SCENES</span><i /> <span>MADE FOR INDIE BUILDERS</span>
+            <span>VERSION-CONTROLLED WORKFLOWS</span><i /> <span>REPLAY AFTER UI CHANGES</span><i /> <span>CAPTIONS & SPOTLIGHTS</span><i /> <span>MP4-FIRST SHARING</span>
+          </section>
+
+          <section className="section workflow-section" id="founder-workflow">
+            <div className="section-heading"><div><div className="eyebrow">THE PAINFUL PART, REMOVED</div><h2>Fix the UI.<br /><span className="gradient-text">Not the whole demo.</span></h2></div><p>For founders who keep re-recording the same product walkthrough every time a button moves or a screen changes.</p></div>
+            <div className="workflow-grid">
+              <article className="workflow-card"><div className="step-number">01 <ArrowUpRight size={15} /></div><div className="workflow-icon"><Workflow size={21} /></div><h3>Define the flow in JSON.</h3><p>Keep your steps in the repo, review changes, and reuse the same workflow across releases.</p><div className="chip-row"><span>Version-controlled</span><span>Repeatable</span></div></article>
+              <article className="workflow-card"><div className="step-number">02 <ArrowUpRight size={15} /></div><div className="workflow-icon"><WandSparkles size={21} /></div><h3>Replay after a change.</h3><p>Use accessible locators where available, wait for streamed answers, and spot failures with a report instead of guessing.</p><div className="chip-row"><span>UI-change friendly</span><span>Failure report</span></div></article>
+              <article className="workflow-card"><div className="step-number">03 <ArrowUpRight size={15} /></div><div className="workflow-icon"><Film size={21} /></div><h3>Export a shareable demo.</h3><p>Add readable captions, spotlight key moments, and finish with your brand. MP4 export depends on a working replay and FFmpeg.</p><div className="chip-row"><span>Captions</span><span>Branded end card</span></div></article>
+            </div>
+            <div className="founder-note"><span className="status-dot" /> <span><strong>Honest beta:</strong> the replay engine passes its controlled smoke tests. Compatibility with your real app—especially Flutter canvas interfaces—must be verified before relying on it.</span><a className="text-link" href="/replay">Explore demo replay <ArrowUpRight size={14} /></a></div>
           </section>
 
           <section id="how-it-works" className="section workflow-section">
-            <div className="section-heading"><div><div className="eyebrow">A BETTER WAY TO SHOW YOUR WORK</div><h2>From rough recording<br />to <span className="gradient-text">launch-ready story.</span></h2></div><p>No timeline expertise required. Start with the product you already have and build a story around it.</p></div>
+            <div className="section-heading"><div><div className="eyebrow">A REPEATABLE RELEASE WORKFLOW</div><h2>From one setup<br />to <span className="gradient-text">every release.</span></h2></div><p>Keep the flow in your repo. Run it against a test environment after changes. Inspect the result before sharing it with customers.</p></div>
             <div className="workflow-grid">
-              <article className="workflow-card"><div className="step-number">01 <ArrowUpRight size={15} /></div><div className="workflow-icon"><Upload size={21} /></div><h3>Bring the raw material.</h3><p>Your actual product recording, plus a reference video that captures the kind of energy you're after.</p><div className="chip-row"><span>Screen recording</span><span>Reference</span></div></article>
-              <article className="workflow-card"><div className="step-number">02 <ArrowUpRight size={15} /></div><div className="workflow-icon"><WandSparkles size={21} /></div><h3>Find the feeling.</h3><p>Choose the mood, rhythm and transition language. Turn inspiration into a direction you can actually edit.</p><div className="chip-row"><span>Style guide</span><span>Story beats</span></div></article>
-              <article className="workflow-card"><div className="step-number">03 <ArrowUpRight size={15} /></div><div className="workflow-icon"><Film size={21} /></div><h3>Make it move.</h3><p>Shape the hook, product reveal, feature moment and closing scene. Keep the real product at the centre.</p><div className="chip-row"><span>Scene editor</span><span>Preview</span></div></article>
+              <article className="workflow-card"><div className="step-number">01 <ArrowUpRight size={15} /></div><div className="workflow-icon"><Workflow size={21} /></div><h3>Save the workflow.</h3><p>Describe the key actions in a JSON file your team can review and version alongside the app.</p><div className="chip-row"><span>JSON config</span><span>Git-friendly</span></div></article>
+              <article className="workflow-card"><div className="step-number">02 <ArrowUpRight size={15} /></div><div className="workflow-icon"><WandSparkles size={21} /></div><h3>Replay and inspect.</h3><p>Wait for streamed content, capture failures with reports, and adjust locators when the interface changes.</p><div className="chip-row"><span>Replay</span><span>Failure report</span></div></article>
+              <article className="workflow-card"><div className="step-number">03 <ArrowUpRight size={15} /></div><div className="workflow-icon"><Film size={21} /></div><h3>Share the fresh demo.</h3><p>Use readable captions, spotlights and a branded end card, then verify the exported video before posting.</p><div className="chip-row"><span>MP4 output</span><span>Branding</span></div></article>
             </div>
           </section>
 
           <section id="principles" className="manifesto">
             <div className="manifesto-symbol"><Layers3 size={23} /></div>
-            <div className="manifesto-copy"><div className="eyebrow">OUR CREATIVE PRINCIPLE</div><h2>Inspired by the feeling.<br /><span className="gradient-text">Faithful to the product.</span></h2><p>Reference videos are for learning rhythm, composition and mood—not copying someone else's work frame for frame. Your product stays the hero.</p></div>
-            <div className="manifesto-side"><span>01 — HONEST UI</span><span>02 — ORIGINAL MOTION</span><span>03 — FOUNDER FIRST</span></div>
+            <div className="manifesto-copy"><div className="eyebrow">OUR PRODUCT PRINCIPLE</div><h2>Useful first.<br /><span className="gradient-text">Polished second.</span></h2><p>Cutlume should save founders repeat work, not create another editing chore. Keep workflows inspectable, report failures honestly, and only share a video after the real app replay succeeds.</p></div>
+            <div className="manifesto-side"><span>01 — REPEATABLE FLOWS</span><span>02 — VISIBLE FAILURES</span><span>03 — MP4 WHEN VERIFIED</span></div>
           </section>
 
           <section className="closing-cta"><div className="closing-glow" /><div className="eyebrow">YOUR NEXT LAUNCH DESERVES A STORY</div><h2>Let's make it<br /><span className="gradient-text">feel like something.</span></h2><button className="button button-primary button-large" onClick={() => { setWorkspace(true); setStage(0); }}>Build a first draft <ArrowRight size={17} /></button><p>No AI credits required for this prototype. Your project stays in this browser.</p></section>

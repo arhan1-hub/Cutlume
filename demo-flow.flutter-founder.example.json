@@ -1,0 +1,95 @@
+{
+  "name": "flutter-founder-demo",
+  "baseUrl": "https://REPLACE-WITH-FOUNDER-DEMO-URL",
+  "outputDir": "recordings",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "steps": [
+    {
+      "action": "fill",
+      "role": "textbox",
+      "name": "Email",
+      "value": "{{env:DEMO_EMAIL}}",
+      "label": "Enter the demo account email"
+    },
+    {
+      "action": "fill",
+      "role": "textbox",
+      "name": "Password",
+      "value": "{{env:DEMO_PASSWORD}}",
+      "label": "Enter the demo account password"
+    },
+    {
+      "action": "click",
+      "role": "button",
+      "name": "Log in",
+      "label": "Log in to the demo account",
+      "pauseAfter": 1000
+    },
+    {
+      "action": "fill",
+      "role": "textbox",
+      "name": "Prompt",
+      "value": "Explain what this sample result means.",
+      "label": "Enter the first prompt"
+    },
+    {
+      "action": "press",
+      "role": "textbox",
+      "name": "Prompt",
+      "key": "Enter",
+      "label": "Submit the first prompt"
+    },
+    {
+      "action": "waitForStableText",
+      "selector": "[data-testid='assistant-response']",
+      "stableMs": 1800,
+      "timeout": 45000,
+      "label": "Wait for the streamed AI answer to finish"
+    },
+    {
+      "action": "upload",
+      "trigger": {
+        "role": "button",
+        "name": "Attach image"
+      },
+      "file": "./fixtures/demo-image.svg",
+      "label": "Open the Flutter file picker and attach the sample image"
+    },
+    {
+      "action": "fill",
+      "role": "textbox",
+      "name": "Prompt",
+      "value": "What can you tell me about this image?",
+      "label": "Ask a question about the image"
+    },
+    {
+      "action": "press",
+      "role": "textbox",
+      "name": "Prompt",
+      "key": "Enter",
+      "label": "Submit the image question"
+    },
+    {
+      "action": "waitForStableText",
+      "selector": "[data-testid='assistant-response']",
+      "stableMs": 1800,
+      "timeout": 45000,
+      "label": "Wait for the image answer to finish"
+    },
+    {
+      "action": "click",
+      "role": "button",
+      "name": "Upgrade",
+      "label": "Open the upgrade/paywall screen",
+      "pauseAfter": 1200
+    },
+    {
+      "action": "screenshot",
+      "file": "paywall-screen.png",
+      "label": "Capture the paywall screen"
+    }
+  ]
+}

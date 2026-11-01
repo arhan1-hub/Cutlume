@@ -1,0 +1,80 @@
+{
+  "name": "flutter-ai-starter-kit-founder-smoke",
+  "baseUrl": "https://flutter-ai-starter-kit-demo.dooettli.workers.dev",
+  "outputDir": "recordings",
+  "viewport": {
+    "width": 1280,
+    "height": 800
+  },
+  "recordingStyle": {
+    "accentColor": "#8b5cf6",
+    "captionFont": "Inter, ui-sans-serif, system-ui, sans-serif",
+    "captionScale": 1,
+    "captionPosition": "auto"
+  },
+  "steps": [
+    {
+      "action": "waitForText",
+      "text": "Try the demo",
+      "timeout": 20000,
+      "label": "Wait for the guest demo entry point",
+      "caption": "Start with the live product",
+      "exact": false
+    },
+    {
+      "action": "click",
+      "selector": "text=Try the demo",
+      "label": "Enter the guest demo",
+      "caption": "Open a guest session",
+      "effect": "spotlight",
+      "pauseAfter": 800
+    },
+    {
+      "action": "waitForSelector",
+      "selector": "textarea",
+      "timeout": 20000,
+      "label": "Wait for the chat input",
+      "caption": "The chat workspace is ready"
+    },
+    {
+      "action": "fill",
+      "selector": "textarea",
+      "value": "Explain what this app can do in simple terms.",
+      "label": "Enter one safe test prompt",
+      "caption": "Send one representative prompt",
+      "presentationMs": 1000
+    },
+    {
+      "action": "press",
+      "selector": "textarea",
+      "key": "Enter",
+      "label": "Submit the prompt",
+      "caption": "Capture the response",
+      "effect": "spotlight",
+      "presentationMs": 800
+    },
+    {
+      "action": "waitForStableText",
+      "selector": "body",
+      "stableMs": 1800,
+      "timeout": 60000,
+      "label": "Wait for the response to stop changing",
+      "caption": "Wait for the answer to finish"
+    },
+    {
+      "action": "screenshot",
+      "file": "founder-chat-result.png",
+      "label": "Capture the completed chat result",
+      "caption": "A repeatable product demo"
+    }
+  ],
+  "endCard": {
+    "enabled": true,
+    "durationMs": 3500,
+    "brand": "CUTLUME",
+    "headline": "Your product evolves. Your demo keeps up.",
+    "subheadline": "Replay your workflow. Capture a fresh demo. Share it.",
+    "cta": "Make your next demo with Cutlume"
+  },
+  "_prototypeNote": "Candidate flow only. Selectors and Enter-to-submit behavior are unverified; verify on the experimental preview before treating as a successful customer-app replay. Uses one guest prompt and no credentials."
+}

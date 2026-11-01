@@ -1,0 +1,103 @@
+{
+  "name": "cutlume-smoke-success",
+  "baseUrl": "http://127.0.0.1:4173/demo-smoke-test.html",
+  "outputDir": "recordings",
+  "capturePresentationScreenshots": true,
+  "viewport": {
+    "width": 1280,
+    "height": 800
+  },
+  "recordingStyle": {
+    "accentColor": "#a78bfa"
+  },
+  "steps": [
+    {
+      "action": "waitForSelector",
+      "selector": "body",
+      "label": "Load the polished demo workspace",
+      "caption": "Your product changed. Your demo shouldn't go stale.",
+      "presentationMs": 2600
+    },
+    {
+      "action": "fill",
+      "selector": "#prompt",
+      "value": "hello Cutlume",
+      "label": "Write a prompt",
+      "caption": "Turn a prompt into a polished product moment",
+      "presentationMs": 1700
+    },
+    {
+      "action": "click",
+      "selector": "#run",
+      "label": "Generate the sample answer",
+      "caption": "The answer appears—without re-recording by hand",
+      "effect": "spotlight",
+      "pauseAfter": 650,
+      "presentationMs": 1800
+    },
+    {
+      "action": "waitForText",
+      "text": "Here’s a concise starting point for “hello Cutlume”",
+      "label": "Confirm the generated answer",
+      "caption": "Add visual context in one click",
+      "presentationMs": 1600
+    },
+    {
+      "action": "click",
+      "selector": "#attach",
+      "label": "Attach the sample image",
+      "caption": "Ask a follow-up. Keep the story moving.",
+      "effect": "spotlight",
+      "pauseAfter": 450,
+      "presentationMs": 1800
+    },
+    {
+      "action": "fill",
+      "selector": "#image-question",
+      "value": "What stands out in this image?",
+      "label": "Ask about the image",
+      "caption": "Make every interaction feel intentional",
+      "presentationMs": 1700
+    },
+    {
+      "action": "click",
+      "selector": "#ask-image",
+      "label": "Generate sample image insights",
+      "caption": "Turn the image into a useful insight",
+      "effect": "spotlight",
+      "pauseAfter": 450,
+      "presentationMs": 1800
+    },
+    {
+      "action": "waitForText",
+      "text": "The visual has a clear focal point",
+      "label": "Confirm image insights",
+      "caption": "The important detail, made easy to see",
+      "presentationMs": 1600
+    },
+    {
+      "action": "click",
+      "selector": "#upgrade",
+      "label": "Open the upgrade screen",
+      "caption": "End the journey on the next step",
+      "effect": "spotlight",
+      "pauseAfter": 800,
+      "presentationMs": 2000
+    },
+    {
+      "action": "waitForSelector",
+      "selector": "#paywall:not(.hidden)",
+      "label": "Confirm the upgrade screen is visible",
+      "caption": "One workflow. A fresh demo, ready to share.",
+      "presentationMs": 2000
+    }
+  ],
+  "endCard": {
+    "enabled": true,
+    "durationMs": 3500,
+    "brand": "CUTLUME",
+    "headline": "Your product evolves. Your demo keeps up.",
+    "subheadline": "Replay your workflow. Capture a fresh demo. Share it.",
+    "cta": "Make your next demo with Cutlume"
+  }
+}

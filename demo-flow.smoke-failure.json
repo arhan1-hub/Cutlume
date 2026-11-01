@@ -1,0 +1,10 @@
+{
+  "name": "cutlume-smoke-failure",
+  "baseUrl": "http://127.0.0.1:4173/demo-smoke-test.html",
+  "outputDir": "recordings",
+  "viewport": { "width": 1280, "height": 800 },
+  "steps": [
+    { "action": "waitForSelector", "selector": "body", "label": "Wait for fixture" },
+    { "action": "click", "selector": "#this-element-does-not-exist", "timeout": 1200, "label": "Expected missing selector" }
+  ]
+}

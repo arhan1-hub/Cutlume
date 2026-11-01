@@ -1,0 +1,70 @@
+{
+  "name": "inspectai-safe-smoke-test",
+  "baseUrl": "https://inspect-ai-ten.vercel.app",
+  "outputDir": "recordings",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "recordingStyle": {
+    "accentColor": "#8b5cf6"
+  },
+  "steps": [
+    {
+      "action": "waitForSelector",
+      "selector": "#inspection",
+      "label": "Open the InspectAI inspection workspace",
+      "caption": "InspectAI · Condition intelligence",
+      "pauseAfter": 700
+    },
+    {
+      "action": "fill",
+      "selector": "input",
+      "value": "CAT 259D3",
+      "label": "Set a demo asset name",
+      "caption": "Start with a sample asset"
+    },
+    {
+      "action": "upload",
+      "trigger": {
+        "text": "Before photos"
+      },
+      "file": "./fixtures/demo-image.svg",
+      "label": "Attach harmless sample evidence as the before photo",
+      "caption": "01 · Add before evidence",
+      "pauseAfter": 700
+    },
+    {
+      "action": "upload",
+      "trigger": {
+        "text": "After photos"
+      },
+      "file": "./fixtures/demo-image.svg",
+      "label": "Attach harmless sample evidence as the after photo",
+      "caption": "02 · Add after evidence",
+      "pauseAfter": 700
+    },
+    {
+      "action": "click",
+      "role": "button",
+      "name": "Analyze inspection",
+      "label": "Run the InspectAI sample analysis",
+      "caption": "03 · Review the evidence",
+      "effect": "spotlight",
+      "pauseAfter": 1500
+    },
+    {
+      "action": "waitForText",
+      "text": "Possible visible change",
+      "timeout": 20000,
+      "label": "Wait for the sample findings",
+      "caption": "Findings are suggestions for human review"
+    },
+    {
+      "action": "screenshot",
+      "file": "inspectai-findings.png",
+      "label": "Capture the sample findings screen",
+      "caption": "InspectAI · Sample findings"
+    }
+  ]
+}
